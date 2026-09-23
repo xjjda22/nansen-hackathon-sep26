@@ -13,6 +13,8 @@ type Store = {
   inflight: Map<string, Promise<CacheEntry>>;
   spent: number;
   remaining: number | null;
+  lastUsed: number;
+  lastCached: boolean;
 };
 
 function store(): Store {
@@ -23,8 +25,12 @@ function store(): Store {
       inflight: new Map(),
       spent: 0,
       remaining: null,
+      lastUsed: 0,
+      lastCached: false,
     };
   }
+  if (g.__offbook.lastUsed == null) g.__offbook.lastUsed = 0;
+  if (g.__offbook.lastCached == null) g.__offbook.lastCached = false;
   return g.__offbook;
 }
 
@@ -35,13 +41,13 @@ export type CreditView = {
   cached: boolean;
 };
 
-export function creditView(used = 0, cached = false): CreditView {
+export function creditView(used?: number, cached?: boolean): CreditView {
   const current = store();
   return {
     spentThisSession: current.spent,
     remaining: current.remaining,
-    used,
-    cached,
+    used: used ?? current.lastUsed,
+    cached: cached ?? current.lastCached,
   };
 }
 
@@ -99,6 +105,8 @@ export async function nansenPost(
   const current = store();
   const hit = peekCache(cacheKey);
   if (hit) {
+    current.lastUsed = 0;
+    current.lastCached = true;
     return {
       ok: hit.ok,
       status: hit.status,
@@ -169,6 +177,8 @@ export async function nansenPost(
       creditsUsed: used,
     };
     if (response.ok) current.cache.set(cacheKey, entry);
+    current.lastUsed = used;
+    current.lastCached = false;
     return entry;
   })();
 
