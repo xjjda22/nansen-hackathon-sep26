@@ -2,7 +2,7 @@
 
 Five questions from the Nansen smart-money board, for the Meridian buildathon. The pages are thin. The answers come from server routes that call Nansen. The desk does not scan blocks, does not ask for a seed or a signature, and does not invent a number the API did not return.
 
-The rule set is [hackathon-edge-cases.md](hackathon-edge-cases.md). Where that note disagrees with [hackathon-ideas.md](hackathon-ideas.md), the edge-case note wins. The fourth product is the two-chain symbol check. The agent-key gate is not built.
+The rule set is [hackathon-edge-cases.md](../docs/hackathon-edge-cases.md). Where that note disagrees with [hackathon-ideas.md](../docs/hackathon-ideas.md), the edge-case note wins. The fourth product is the two-chain symbol check. The agent-key gate is not built.
 
 ## Run locally
 
@@ -40,11 +40,13 @@ Netflow is 5 credits. Flow intelligence and who-bought-sold are 1 credit each. A
 
 The desk does not call profiler labels or `agent/fast`, and it does not walk pages.
 
-## Research notes in this folder
+## Research notes
 
-- [hackathon-edge-cases.md](hackathon-edge-cases.md)
-- [hackathon-ideas.md](hackathon-ideas.md)
-- [built-projects.md](built-projects.md)
-- [meridian-buildathon.md](meridian-buildathon.md)
-- [ethskills-site-research.md](ethskills-site-research.md)
-- [nansen-agent-product-research.md](nansen-agent-product-research.md)
+The notes sit next to this repo, in `../docs`:
+
+- [hackathon-edge-cases.md](../docs/hackathon-edge-cases.md)
+- [hackathon-ideas.md](../docs/hackathon-ideas.md)
+- [built-projects.md](../docs/built-projects.md)
+- [meridian-buildathon.md](../docs/meridian-buildathon.md)
+- [ethskills-site-research.md](../docs/ethskills-site-research.md)
+- [nansen-agent-product-research.md](../docs/nansen-agent-product-research.md)
