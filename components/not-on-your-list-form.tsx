@@ -1,5 +1,6 @@
 "use client";
 
+import { CallNote } from "@/components/call-note";
 import { Status } from "@/components/status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,13 +31,14 @@ type CohortResult = {
   chain: string;
   tokenAddress: string;
   sentence: string;
+  credits: Credits;
 };
 
 export function NotOnYourListForm() {
   const { pending, error, run } = useDesk();
   const [book, setBook] = useState("");
   const [result, setResult] = useState<BoardResult | null>(null);
-  const [cohorts, setCohorts] = useState<Record<string, string>>({});
+  const [cohorts, setCohorts] = useState<Record<string, CohortResult>>({});
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -56,7 +58,7 @@ export function NotOnYourListForm() {
     if (!data) return;
     setCohorts((current) => ({
       ...current,
-      [`${card.chain}:${card.tokenAddress}`]: data.sentence,
+      [`${card.chain}:${card.tokenAddress}`]: data,
     }));
   }
 
@@ -81,7 +83,7 @@ export function NotOnYourListForm() {
       {error ? <Status kind="error">{error}</Status> : null}
       {!result && !error ? (
         <Status kind="empty">
-          Nothing subtracted yet. Type at least one symbol. An empty field makes no call and is not a
+          Nothing subtracted yet. Type at least one symbol. An empty book makes no call and is not a
           leaderboard.
         </Status>
       ) : null}
@@ -89,24 +91,25 @@ export function NotOnYourListForm() {
 
       {result ? (
         <div className="space-y-4">
-          <p className="text-lg leading-relaxed">
+          <p className="verdict">
             {result.count === 0
               ? "No name survived the book and the floor."
               : `${result.count} ${result.count === 1 ? "name" : "names"} smart money is adding that ${result.count === 1 ? "is" : "are"} not on your list.`}
           </p>
-          <p className="text-sm leading-relaxed text-[#5c4632]">
+          <CallNote credits={result.credits} />
+          <p className="aside">
             Adding means positive 24h net flow: buys net of sells, or CEX withdrawals net of deposits.
             Stables and native gas tokens stay excluded. Rows under 1% of the largest absolute 24h flow
             on this page ({formatUsd(result.floorUsd)}) are dropped, and so is a row with fewer than 2
             traders. {result.pageCut ? "This is the first page of 100. The next page was not fetched." : "This page was the last page."}
           </p>
           {result.unmatchedSymbols.length > 0 ? (
-            <p className="text-sm text-[#5c4632]">
+            <p className="aside">
               Read as symbols and matched no row: {result.unmatchedSymbols.join(", ")}.
             </p>
           ) : null}
           {result.ignored.length > 0 ? (
-            <p className="text-sm text-[#5c4632]">Ignored: {result.ignored.join(", ")}.</p>
+            <p className="aside">Ignored: {result.ignored.join(", ")}.</p>
           ) : null}
           {result.cards.length === 0 ? (
             <Status kind="empty">The page had rows. None of them cleared your book, the floor, and a positive 24h flow.</Status>
@@ -114,8 +117,9 @@ export function NotOnYourListForm() {
             <ul className="space-y-3">
               {result.cards.map((card) => {
                 const key = `${card.chain}:${card.tokenAddress}`;
+                const cohort = cohorts[key];
                 return (
-                  <li key={key} className="rounded-sm border border-[#e4d3b6] p-3">
+                  <li key={key} className="ledger-line">
                     <p className="font-display text-xl text-rust">
                       {card.tokenSymbol} · {card.chain}
                     </p>
@@ -133,7 +137,12 @@ export function NotOnYourListForm() {
                     >
                       {pending ? "Waiting…" : "Read the 1d cohort"}
                     </Button>
-                    {cohorts[key] ? <p className="mt-3 text-base">{cohorts[key]}</p> : null}
+                    {cohort ? (
+                      <div className="mt-3">
+                        <p className="verdict">{cohort.sentence}</p>
+                        <CallNote credits={cohort.credits} />
+                      </div>
+                    ) : null}
                   </li>
                 );
               })}

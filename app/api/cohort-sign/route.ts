@@ -1,5 +1,5 @@
 import { FLOW_COST, FLOW_PATH } from "@/lib/constants";
-import { creditView, nansenMessage, nansenPost } from "@/lib/nansen";
+import { creditView, nansenMessage, nansenPost, noteCombinedUse } from "@/lib/nansen";
 import {
   classifyTokenInput,
   isFlowChain,
@@ -11,6 +11,12 @@ import {
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+
+function combinedCredits(dayUsed: number, fiveUsed: number, cached: boolean) {
+  const used = dayUsed + fiveUsed;
+  noteCombinedUse(used, cached);
+  return creditView(used, cached);
+}
 
 export async function POST(request: Request) {
   let payload: { chain?: unknown; tokenAddress?: unknown; symbol?: unknown };
@@ -136,7 +142,7 @@ export async function POST(request: Request) {
         agreement: "UNAVAILABLE" as const,
         fiveSkipped: nansenMessage(five.body, five.status),
         addressOnly: !symbol,
-        credits: five.credits,
+        credits: combinedCredits(day.creditsUsed, five.creditsUsed, false),
       });
     }
     const fiveRecord = readCohortRecord(five.body);
@@ -148,7 +154,7 @@ export async function POST(request: Request) {
       line: judged.line,
       agreement,
       addressOnly: !symbol,
-      credits: { ...five.credits, used: day.creditsUsed + five.creditsUsed },
+      credits: combinedCredits(day.creditsUsed, five.creditsUsed, day.cached && five.cached),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "The cohort read failed.";

@@ -41,6 +41,12 @@ export type CreditView = {
   cached: boolean;
 };
 
+export function noteCombinedUse(used: number, cached: boolean) {
+  const current = store();
+  current.lastUsed = used;
+  current.lastCached = cached;
+}
+
 export function creditView(used?: number, cached?: boolean): CreditView {
   const current = store();
   return {

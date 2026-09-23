@@ -15,9 +15,11 @@ export type BoardRow = {
 
 export function BoardPicker({
   disabled,
+  night = false,
   onPick,
 }: {
   disabled: boolean;
+  night?: boolean;
   onPick: (row: BoardRow) => void;
 }) {
   const [rows, setRows] = useState<BoardRow[] | null>(null);
@@ -57,7 +59,7 @@ export function BoardPicker({
 
   return (
     <div className="space-y-3">
-      <Button type="button" variant="line" disabled={disabled || pending} onClick={load}>
+      <Button type="button" variant="line" className={night ? "night-line" : undefined} disabled={disabled || pending} onClick={load}>
         {pending ? "Checking the cache…" : "Show cached board rows"}
       </Button>
       {error ? <Status kind="error">{error}</Status> : null}
@@ -69,7 +71,7 @@ export function BoardPicker({
       ) : null}
       {ready && rows ? (
         <div className="space-y-2">
-          <label className="block text-sm text-[#5c4632]" htmlFor="board-filter">
+          <label className="aside" htmlFor="board-filter">
             Filter the cached page by symbol
           </label>
           <Input

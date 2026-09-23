@@ -1,53 +1,72 @@
-import { Desk } from "@/components/desk";
+import { DeskMark, type DeskTone } from "@/components/marks";
 import Link from "next/link";
 
-const DOORS = [
+const DOORS: {
+  href: string;
+  tone: DeskTone;
+  kicker: string;
+  title: string;
+  copy: string;
+}[] = [
   {
     href: "/not-on-your-list",
+    tone: "ledger",
+    kicker: "The book",
     title: "Not on your list",
-    copy: "Type the symbols you hold. Up to three names with positive 24h smart-money net flow that are not on that list. The cohort line waits until you open a card.",
+    copy: "Write the symbols you already hold. The ledger keeps up to three names with positive 24h smart-money net flow that are absent from that list. An empty book makes no call.",
   },
   {
     href: "/sector-weather",
+    tone: "weather",
+    kicker: "The barometer",
     title: "Sector weather",
-    copy: "One sentence from Nansen's token_sectors. The sums overlap. If nothing is negative, nothing is leaving.",
+    copy: "One sentence from Nansen's token_sectors. A token in two sectors is counted in full in both. If every sector is positive, nothing is leaving.",
   },
   {
     href: "/both-sides",
+    tone: "blotter",
+    kicker: "The blotter",
     title: "Same names, both sides",
-    copy: "Of the top page of buyers, how many also sold. If sold volume is missing, the page stops. It will not invent a direction.",
+    copy: "Of the top page of buyers, how many also sold. If sold volume is missing, the blotter stops. It will not print a direction.",
   },
   {
     href: "/two-chains",
+    tone: "rails",
+    kicker: "The twin rails",
     title: "Same ticker, two chains",
-    copy: "One symbol. If the netflow page has it on more than one chain, which absolute 24h figure is larger. A tie stays a tie.",
+    copy: "One symbol. If the netflow page still has it on more than one chain, which absolute 24h figure is larger. A tie stays a tie.",
   },
   {
     href: "/cohort-sign",
+    tone: "wire",
+    kicker: "The wire",
     title: "Cohort and sign",
-    copy: "The largest absolute 1-day cohort and its sign, then AGREE, DISAGREE, or UNAVAILABLE. The price is not in the payload, so this desk does not explain one.",
+    copy: "The largest absolute 1-day cohort and its sign, then AGREE, DISAGREE, or UNAVAILABLE. This desk does not explain a price.",
   },
 ];
 
 export default function HomePage() {
   return (
-    <Desk
-      title="The counter is open"
-      lede="The in-app agent asks these questions and then asks you to sign up. This desk answers from the indexed board: one netflow page, a flow split, or a buy page. Credits are counted in the header."
-    >
-      <ul className="space-y-3">
+    <section>
+      <p className="kicker on-wood">The room</p>
+      <h1 className="nameplate-title">Five desks, one board</h1>
+      <p className="room-lede">
+        The in-app agent asks these questions and then asks you to sign up. Each desk answers from
+        the indexed board: one netflow page, a flow split, or a buy page. The brass rail is the
+        credit counter for this server process.
+      </p>
+      <ul className="door-grid">
         {DOORS.map((door) => (
-          <li key={door.href}>
-            <Link
-              href={door.href}
-              className="block rounded-sm border border-[#e4d3b6] p-4 transition-colors hover:border-rust"
-            >
-              <span className="font-display text-xl text-rust">{door.title}</span>
-              <span className="mt-1 block text-sm leading-relaxed text-[#5c4632]">{door.copy}</span>
+          <li key={door.href} className={`door-slot door-slot-${door.tone}`}>
+            <Link href={door.href} className={`door door-${door.tone}`}>
+              <DeskMark tone={door.tone} />
+              <span className="kicker">{door.kicker}</span>
+              <span className="door-title">{door.title}</span>
+              <span className="door-copy">{door.copy}</span>
             </Link>
           </li>
         ))}
       </ul>
-    </Desk>
+    </section>
   );
 }

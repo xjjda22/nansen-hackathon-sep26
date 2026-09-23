@@ -1,5 +1,6 @@
 "use client";
 
+import { CallNote } from "@/components/call-note";
 import { Status } from "@/components/status";
 import { Button } from "@/components/ui/button";
 import { useDesk, type Credits } from "@/components/use-desk";
@@ -35,7 +36,7 @@ export function SectorWeatherForm() {
   return (
     <div className="space-y-5">
       <form onSubmit={onSubmit} className="space-y-3">
-        <p className="text-sm leading-relaxed text-[#5c4632]">
+        <p className="aside">
           There is no address box. A pasted contract does nothing here and costs nothing. Sectors are
           Nansen&apos;s <span className="font-mono">token_sectors</span> field.
         </p>
@@ -50,20 +51,21 @@ export function SectorWeatherForm() {
       {pending ? <Status kind="loading">One request is in flight. The button stays off until it returns.</Status> : null}
       {weather ? (
         <div className="space-y-4">
-          <p className="text-lg leading-relaxed">{weather.sentence}</p>
-          <dl className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-sm border border-[#e4d3b6] p-3">
-              <dt className="text-xs uppercase tracking-wide text-[#8a735c]">Positive side</dt>
+          <p className="forecast">{weather.sentence}</p>
+          <CallNote credits={weather.credits} />
+          <dl className="hemispheres">
+            <div className="hemisphere">
+              <dt>Positive side</dt>
               <dd className="mt-1">{sideLine(weather.entering, weather.noWeather)}</dd>
             </div>
-            <div className="rounded-sm border border-[#e4d3b6] p-3">
-              <dt className="text-xs uppercase tracking-wide text-[#8a735c]">Negative side</dt>
+            <div className="hemisphere">
+              <dt>Negative side</dt>
               <dd className="mt-1">
                 {weather.nothingLeaving ? "Nothing is leaving." : sideLine(weather.leaving, weather.noWeather)}
               </dd>
             </div>
           </dl>
-          <p className="text-sm text-[#5c4632]">
+          <p className="aside">
             Unmapped rows: {weather.unmapped}. Floor on this page: {formatUsd(weather.floorUsd)}.
             {weather.pageCut ? " First page of 100 only." : " Last page."}
           </p>

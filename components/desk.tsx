@@ -1,19 +1,20 @@
+import { DeskMark, type DeskTone } from "@/components/marks";
 import Link from "next/link";
 
 const LINKS = [
-  ["/", "Desk"],
-  ["/not-on-your-list", "Not on your list"],
-  ["/sector-weather", "Sector weather"],
-  ["/both-sides", "Both sides"],
-  ["/two-chains", "Two chains"],
-  ["/cohort-sign", "Cohort and sign"],
+  ["/", "Room"],
+  ["/not-on-your-list", "Ledger"],
+  ["/sector-weather", "Weather"],
+  ["/both-sides", "Blotter"],
+  ["/two-chains", "Rails"],
+  ["/cohort-sign", "Wire"],
 ] as const;
 
 export function Nav() {
   return (
-    <nav className="mb-6 flex flex-wrap gap-x-4 gap-y-2 text-sm text-[#f0e2c8]">
+    <nav className="rail" aria-label="Desks">
       {LINKS.map(([href, label]) => (
-        <Link key={href} href={href} className="underline-offset-4 hover:underline">
+        <Link key={href} href={href}>
           {label}
         </Link>
       ))}
@@ -24,16 +25,26 @@ export function Nav() {
 export function Desk({
   title,
   lede,
+  kicker,
+  tone,
   children,
 }: {
   title: string;
   lede: string;
+  kicker: string;
+  tone: DeskTone;
   children: React.ReactNode;
 }) {
   return (
-    <article className="paper rounded-sm p-5 sm:p-8">
-      <h1 className="font-display text-3xl leading-tight text-rust sm:text-4xl">{title}</h1>
-      <p className="mt-3 mb-6 leading-relaxed">{lede}</p>
+    <article className={`desk desk-${tone}`} data-desk={tone}>
+      <header className="desk-head">
+        <DeskMark tone={tone} />
+        <div>
+          <p className="kicker">{kicker}</p>
+          <h1>{title}</h1>
+        </div>
+      </header>
+      <p className="desk-lede">{lede}</p>
       {children}
     </article>
   );

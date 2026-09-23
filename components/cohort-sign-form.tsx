@@ -1,6 +1,7 @@
 "use client";
 
 import { BoardPicker, type BoardRow } from "@/components/board-picker";
+import { CallNote } from "@/components/call-note";
 import { Status } from "@/components/status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,7 +42,7 @@ export function CohortSignForm() {
 
   return (
     <div className="space-y-5">
-      <BoardPicker disabled={pending} onPick={pick} />
+      <BoardPicker disabled={pending} night onPick={pick} />
       <form onSubmit={onSubmit} className="space-y-3">
         <label className="block text-sm font-semibold" htmlFor="flow-chain">
           Chain
@@ -50,7 +51,7 @@ export function CohortSignForm() {
           id="flow-chain"
           value={chain}
           onChange={(event) => setChain(event.target.value)}
-          className="min-h-11 w-full rounded-sm border border-gold bg-white px-3 text-base text-ink"
+          className="field"
         >
           {FLOW_CHAINS.map((name) => (
             <option key={name} value={name}>
@@ -76,7 +77,7 @@ export function CohortSignForm() {
           {pending ? "Reading cohorts…" : "Read cohort and sign"}
         </Button>
       </form>
-      <p className="text-sm leading-relaxed text-[#5c4632]">
+      <p className="aside">
         Two lines when the day has a cohort: the largest absolute non-null 1d net flow and its sign,
         then whether that same cohort&apos;s 5-minute sign matches. Null is not zero. A symbol alone
         makes no call. hyperliquid is not a chain here.
@@ -89,15 +90,16 @@ export function CohortSignForm() {
       {pending ? <Status kind="loading">One request is in flight. The button stays off until it returns.</Status> : null}
       {result ? (
         <div className="space-y-3">
-          <p className="font-display text-2xl text-rust">{result.line}</p>
+          <p className="wire-line">{result.line}</p>
+          <CallNote credits={result.credits} />
           {result.agreement ? (
-            <p className="text-lg tracking-wide">{result.agreement}</p>
+            <p className="stamp">{result.agreement}</p>
           ) : result.flat ? (
-            <p className="text-sm text-[#5c4632]">No agreement line. A flat day does not agree.</p>
+            <p className="aside">No agreement line. A flat day does not agree.</p>
           ) : null}
-          {result.fiveSkipped ? <p className="text-sm text-[#5c4632]">{result.fiveSkipped}</p> : null}
+          {result.fiveSkipped ? <p className="aside">{result.fiveSkipped}</p> : null}
           {result.addressOnly ? (
-            <p className="text-sm text-[#5c4632]">
+            <p className="aside">
               No symbol came with this address, so a known stable or native could not be refused up front.
             </p>
           ) : null}

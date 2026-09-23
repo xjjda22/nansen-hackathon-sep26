@@ -7,6 +7,8 @@ export const metadata: Metadata = { title: "Not on your list · Off Book" };
 export default function Page() {
   return (
     <Desk
+      tone="ledger"
+      kicker="The book"
       title="Not on your list"
       lede="You name what you already hold. The desk keeps positive 24h net flow, drops your symbols on every chain, and prints at most three survivors. Open a card for the one cohort line. That line is a separate credit."
     >

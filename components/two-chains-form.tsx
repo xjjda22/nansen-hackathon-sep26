@@ -1,5 +1,6 @@
 "use client";
 
+import { CallNote } from "@/components/call-note";
 import { Status } from "@/components/status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,7 +55,7 @@ export function TwoChainsForm() {
           {pending ? "Reading the board…" : "Check the symbol"}
         </Button>
       </form>
-      <p className="text-sm leading-relaxed text-[#5c4632]">
+      <p className="aside">
         Exact symbol. ETH does not match WETH. Rows under 1% of the largest absolute 24h flow on the
         page are ignored. Stables and native gas tokens stay excluded.
       </p>
@@ -63,14 +64,15 @@ export function TwoChainsForm() {
       {pending ? <Status kind="loading">One request is in flight. The button stays off until it returns.</Status> : null}
       {result ? (
         <div className="space-y-3">
-          <p className="text-lg leading-relaxed">{result.sentence}</p>
-          <p className="text-sm text-[#5c4632]">Floor on this page: {formatUsd(result.floorUsd)}.</p>
+          <p className="verdict">{result.sentence}</p>
+          <CallNote credits={result.credits} />
+          <p className="aside">Floor on this page: {formatUsd(result.floorUsd)}.</p>
           {result.rows.length === 0 ? (
             <Status kind="empty">No row for that symbol cleared the floor on this page.</Status>
           ) : (
             <ul className="space-y-2">
               {result.rows.map((row) => (
-                <li key={`${row.chain}:${row.tokenAddress}`} className="rounded-sm border border-[#e4d3b6] p-3 text-sm">
+                <li key={`${row.chain}:${row.tokenAddress}`} className={`ticket text-sm ${row.larger ? "ticket-lead" : ""}`}>
                   <p className="font-semibold">
                     {row.tokenSymbol} · {row.chain}
                     {row.larger ? " · larger absolute" : ""}

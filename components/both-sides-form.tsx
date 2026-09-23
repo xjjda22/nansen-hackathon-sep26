@@ -1,6 +1,7 @@
 "use client";
 
 import { BoardPicker, type BoardRow } from "@/components/board-picker";
+import { CallNote } from "@/components/call-note";
 import { Status } from "@/components/status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,7 +79,7 @@ export function BothSidesForm() {
           id="trade-chain"
           value={chain}
           onChange={(event) => setChain(event.target.value)}
-          className="min-h-11 w-full rounded-sm border border-gold bg-white px-3 text-base text-ink"
+          className="field"
         >
           {TRADE_CHAINS.map((name) => (
             <option key={name} value={name}>
@@ -104,7 +105,7 @@ export function BothSidesForm() {
           {pending ? "Reading the buy page…" : "Read the buy page"}
         </Button>
       </form>
-      <p className="text-sm leading-relaxed text-[#5c4632]">
+      <p className="aside">
         The quarter is {QUARTER}. It is a constant printed here, not a law. A row counts when both USD
         volumes are present, the smaller is at least a quarter of the larger, and the row clears the
         same 1% floor. Page size is 25. An address typed by itself is not checked against a stablecoin
@@ -117,38 +118,54 @@ export function BothSidesForm() {
       ) : null}
       {pending ? <Status kind="loading">One request is in flight. The buttons stay off until it returns.</Status> : null}
       {buy ? (
-        <div className="space-y-3">
-          <p className="text-lg leading-relaxed">{buy.sentence}</p>
-          {buy.addresses.length > 0 ? (
-            <ul className="space-y-1 break-all font-mono text-xs">
-              {buy.addresses.map((address) => (
-                <li key={address}>{address}</li>
-              ))}
-            </ul>
-          ) : null}
-          {buy.pageCut ? <p className="text-sm text-[#5c4632]">The buy page was cut. The next page was not fetched.</p> : null}
-          {buy.addressOnly ? (
-            <p className="text-sm text-[#5c4632]">No symbol came with this address, so a quote-leg refusal could not run.</p>
-          ) : null}
-          {buy.verdict === "COUNT" ? (
-            <Button type="button" variant="line" disabled={pending} onClick={onSell}>
-              {pending ? "Waiting…" : "Read the sell page"}
-            </Button>
-          ) : null}
-          {sell ? (
-            <div className="space-y-2 border-t border-[#eadcc4] pt-3">
-              <p>{sell.sentence}</p>
-              {sell.addresses.length > 0 ? (
-                <ul className="space-y-1 break-all font-mono text-xs">
-                  {sell.addresses.map((address) => (
-                    <li key={address}>{address}</li>
-                  ))}
-                </ul>
-              ) : (
-                <Status kind="empty">The sell page came back with no addresses.</Status>
-              )}
-            </div>
-          ) : null}
+        <div className="blotter-result">
+          <div className="slip space-y-3">
+            <p className="kicker">Buy page</p>
+            <p className="verdict">{buy.sentence}</p>
+            <CallNote credits={buy.credits} />
+            {buy.addresses.length > 0 ? (
+              <ul className="space-y-1 break-all font-mono text-xs">
+                {buy.addresses.map((address) => (
+                  <li key={address}>{address}</li>
+                ))}
+              </ul>
+            ) : null}
+            {buy.pageCut ? <p className="aside">The buy page was cut. The next page was not fetched.</p> : null}
+            {buy.addressOnly ? (
+              <p className="aside">No symbol came with this address, so a quote-leg refusal could not run.</p>
+            ) : null}
+            {buy.verdict === "COUNT" ? (
+              <Button type="button" variant="line" disabled={pending} onClick={onSell}>
+                {pending ? "Waiting…" : "Read the sell page"}
+              </Button>
+            ) : (
+              <Status kind="empty">
+                The sell page stays closed. Missing sold volume does not become a direction.
+              </Status>
+            )}
+          </div>
+          <div className="slip slip-sell space-y-2">
+            <p className="kicker">Sell page</p>
+            {sell ? (
+              <>
+                <p className="verdict">{sell.sentence}</p>
+                <CallNote credits={sell.credits} />
+                {sell.addresses.length > 0 ? (
+                  <ul className="space-y-1 break-all font-mono text-xs">
+                    {sell.addresses.map((address) => (
+                      <li key={address}>{address}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <Status kind="empty">The sell page came back with no addresses.</Status>
+                )}
+              </>
+            ) : (
+              <Status kind="empty">
+                The sell page has not been asked. It is a separate click and does not change the buy verdict.
+              </Status>
+            )}
+          </div>
         </div>
       ) : null}
     </div>

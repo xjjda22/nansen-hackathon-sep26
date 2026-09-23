@@ -32,11 +32,18 @@ export function CreditBar() {
       ? `${credits.remaining} remaining on the Nansen account`
       : "account remaining not reported";
 
+  const last = !credits
+    ? "Waiting for the session counter."
+    : credits.spentThisSession === 0 && credits.used === 0 && !credits.cached
+      ? "No click has been charged in this process yet."
+      : credits.cached
+        ? `Last click was served from cache and charged ${credits.used}.`
+        : `Last click charged ${credits.used}.`;
+
   return (
-    <p className="mb-6 text-sm text-[#e7d3b0]" aria-live="polite">
-      Session credits spent: {credits ? credits.spentThisSession : "…"}. {remaining}. A cached
-      click spends 0. Last action: {credits ? credits.used : 0}
-      {credits?.cached ? ", from cache" : ""}.
+    <p className="plaque" aria-live="polite">
+      This server process has spent {credits ? credits.spentThisSession : "…"} credits. {remaining}. {last}{" "}
+      That figure is the session, not a campaign total.
     </p>
   );
 }
