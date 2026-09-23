@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+:root {
+  --cream: #f4ead7;
+  --ink: #2a1810;
+  --rust: #8c3a24;
+  --gold: #c4a15a;
+}
+
+@theme inline {
+  --color-cream: var(--cream);
+  --color-ink: var(--ink);
+  --color-rust: var(--rust);
+  --color-gold: var(--gold);
+  --font-display: var(--font-rye);
+  --font-body: var(--font-serif);
+}
+
+body {
+  background-color: #1a100c;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 52px),
+    repeating-linear-gradient(
+      180deg,
+      #2c1a12 0 26px,
+      #24150f 26px 28px,
+      #3a2418 28px 54px,
+      #1c100c 54px 56px
+    );
+  color: var(--cream);
+  font-family: var(--font-serif), "Iowan Old Style", Palatino, serif;
+}
+
+.paper {
+  background: var(--cream);
+  color: var(--ink);
+  border: 1px solid var(--gold);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.font-display {
+  font-family: var(--font-rye), "Copperplate", serif;
+  letter-spacing: 0.01em;
+}
