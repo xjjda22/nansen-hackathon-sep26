@@ -5,6 +5,7 @@ import {
   MAX_ADDRESSES_SHOWN,
   MAX_CARDS,
   MIN_TRADERS,
+  POKE_SHARE,
   QUARTER,
   QUOTE_SYMBOLS,
   RELATIVE_FLOOR,
@@ -605,6 +606,219 @@ export function rollingDay(now = new Date()): { from: string; to: string } {
 
 export function utcDay(now = new Date()): string {
   return now.toISOString().slice(0, 10);
+}
+
+function finite(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+export function pokeVerdict(rows: { bought: number | null }[], isLastPage: boolean) {
+  const pageCut = !isLastPage;
+  if (rows.length === 0) {
+    return {
+      verdict: "NO_TRADES" as const,
+      sentence: "NO TRADES.",
+      share: null as number | null,
+      kept: 0,
+      pageCut,
+    };
+  }
+  const present = rows.map((row) => row.bought).filter((value): value is number => value !== null);
+  if (present.length === 0) {
+    return {
+      verdict: "VOLUME_ABSENT" as const,
+      sentence: "VOLUME ABSENT. Bought USD is missing, so this page is not one poke or many callers.",
+      share: null,
+      kept: 0,
+      pageCut,
+    };
+  }
+  const floor = pageFloor(present);
+  const kept = present.filter((value) => value >= floor);
+  const sum = kept.reduce((total, value) => total + value, 0);
+  if (sum <= 0) {
+    return {
+      verdict: "VOLUME_ABSENT" as const,
+      sentence: "VOLUME ABSENT. The kept buy USD on this page is zero.",
+      share: null,
+      kept: kept.length,
+      pageCut,
+    };
+  }
+  const top = Math.max(...kept);
+  const share = top / sum;
+  const percent = `${Math.round(share * 1000) / 10}%`;
+  if (share >= POKE_SHARE) {
+    return {
+      verdict: "ONE_POKE" as const,
+      sentence: `ONE POKE. The largest kept wallet is ${percent} of the kept buy USD on this page of ${BUYERS_PER_PAGE}.`,
+      share,
+      kept: kept.length,
+      pageCut,
+    };
+  }
+  return {
+    verdict: "MANY_CALLERS" as const,
+    sentence: `MANY CALLERS. The largest kept wallet is ${percent} of the kept buy USD on this page of ${BUYERS_PER_PAGE}.`,
+    share,
+    kept: kept.length,
+    pageCut,
+  };
+}
+
+export type GasRow = { chain: string; gasUsd: number | null };
+
+export function gasLead(rows: GasRow[]) {
+  const named = ["ethereum", "base", "arbitrum"].map((name) => {
+    const found = rows.find((row) => row.chain.toLowerCase() === name);
+    return found ? { chain: found.chain, gasUsd: found.gasUsd } : { chain: name, gasUsd: null, missing: true as const };
+  });
+  const usable = rows.filter((row): row is { chain: string; gasUsd: number } => row.gasUsd !== null);
+  if (usable.length === 0) {
+    return {
+      verdict: "GAS_MISSING" as const,
+      leader: null as string | null,
+      sentence: "GAS MISSING. Every EVM gas field on this page was null.",
+      named,
+    };
+  }
+  let leader = usable[0];
+  for (const row of usable) {
+    if (row.gasUsd > leader.gasUsd) leader = row;
+  }
+  if (leader.chain.toLowerCase() === "ethereum") {
+    return {
+      verdict: "MAINNET_STILL_BURNS_MOST" as const,
+      leader: leader.chain,
+      sentence: "MAINNET STILL BURNS MOST. Ethereum leads EVM gas USD over 7 days.",
+      named,
+    };
+  }
+  return {
+    verdict: "L2_BURNS_MOST" as const,
+    leader: leader.chain,
+    sentence: `L2 BURNS MOST. ${leader.chain} leads EVM gas USD over 7 days. Ethereum does not.`,
+    named,
+  };
+}
+
+export function jupDcaVerdict(body: unknown) {
+  if (!body || typeof body !== "object" || !Array.isArray((body as { data?: unknown }).data)) {
+    return {
+      verdict: "NONE" as const,
+      sentence: "NONE. The payload had no vault list. Nothing was invented.",
+      active: 0,
+      closed: 0,
+      leftover: null as number | null,
+      pageCut: false,
+    };
+  }
+  const record = body as { data: unknown[]; pagination?: { is_last_page?: unknown } };
+  if (record.data.length === 0) {
+    return {
+      verdict: "NONE" as const,
+      sentence: "NONE. The page came back with no vaults.",
+      active: 0,
+      closed: 0,
+      leftover: null,
+      pageCut: record.pagination?.is_last_page === false,
+    };
+  }
+  let active = 0;
+  let closed = 0;
+  let leftover = 0;
+  let leftoverRows = 0;
+  for (const item of record.data) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as Record<string, unknown>;
+    if (row.status === "Active") active += 1;
+    else if (row.status === "Closed") closed += 1;
+    if (row.status !== "Active") continue;
+    const deposited = finite(row.deposit_amount);
+    const spent = finite(row.deposit_spent);
+    if (deposited === null || spent === null) continue;
+    leftover += deposited - spent;
+    leftoverRows += 1;
+  }
+  const pageCut = record.pagination?.is_last_page === false;
+  const cut = pageCut ? " This is the first page. The next page was not fetched." : "";
+  if (active > 0) {
+    const sitting =
+      leftoverRows > 0
+        ? ` Unspent deposit on Active vaults with both figures: ${formatUsd(leftover)}.`
+        : " No Active vault had both deposit figures, so no leftover was invented.";
+    return {
+      verdict: "STILL_FILLING" as const,
+      sentence: `STILL FILLING. ${active} Active and ${closed} Closed on this page.${sitting}${cut}`,
+      active,
+      closed,
+      leftover: leftoverRows > 0 ? leftover : null,
+      pageCut,
+    };
+  }
+  return {
+    verdict: "CLOSED" as const,
+    sentence: `CLOSED. ${closed} Closed on this page, and none were Active.${cut}`,
+    active,
+    closed,
+    leftover: null,
+    pageCut,
+  };
+}
+
+function cohortNet(longs: unknown, shorts: unknown): number | null {
+  const long = finite(longs);
+  const short = finite(shorts);
+  if (long === null || short === null) return null;
+  return long - short;
+}
+
+export function hlSplit(body: unknown) {
+  const empty = {
+    verdict: "FLAT" as const,
+    sentence: "FLAT. No position row came back. This was not filled in from spot netflow.",
+    smartNet: null as number | null,
+    whaleNet: null as number | null,
+  };
+  if (!body || typeof body !== "object" || !Array.isArray((body as { data?: unknown }).data)) return empty;
+  const data = (body as { data: unknown[] }).data;
+  const first = data.find((item) => item && typeof item === "object");
+  if (!first) return empty;
+  const row = first as Record<string, unknown>;
+  const smartNet = cohortNet(row.smart_trader_longs_usd, row.smart_trader_shorts_usd);
+  const whaleNet = cohortNet(row.whale_longs_usd, row.whale_shorts_usd);
+  if (smartNet === null || whaleNet === null || smartNet === 0 || whaleNet === 0) {
+    return {
+      verdict: "FLAT" as const,
+      sentence: "FLAT. A Smart HL Perps or Whale side is missing or zero. Null is not a side.",
+      smartNet,
+      whaleNet,
+    };
+  }
+  const floor = RELATIVE_FLOOR * Math.max(Math.abs(smartNet), Math.abs(whaleNet));
+  if (Math.abs(smartNet) < floor || Math.abs(whaleNet) < floor) {
+    return {
+      verdict: "FLAT" as const,
+      sentence: "FLAT. One net is under 1% of the larger absolute. This is not a split.",
+      smartNet,
+      whaleNet,
+    };
+  }
+  const opposite = smartNet > 0 !== whaleNet > 0;
+  if (opposite) {
+    return {
+      verdict: "SPLIT" as const,
+      sentence: `SPLIT. Smart HL Perps net ${formatUsd(smartNet)} and Whale net ${formatUsd(whaleNet)} have opposite signs.`,
+      smartNet,
+      whaleNet,
+    };
+  }
+  return {
+    verdict: "ALIGNED" as const,
+    sentence: `ALIGNED. Smart HL Perps net ${formatUsd(smartNet)} and Whale net ${formatUsd(whaleNet)} share a sign.`,
+    smartNet,
+    whaleNet,
+  };
 }
 
 export function formatUsd(value: number): string {

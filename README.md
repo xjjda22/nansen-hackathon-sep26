@@ -46,6 +46,10 @@ If the account cannot cover a call, the desk shows Nansen's error. It does not f
 | Same names, both sides | `POST /api/both-sides` |
 | Same ticker, two chains | `POST /api/two-chains` |
 | Cohort and sign | `POST /api/cohort-sign` |
+| One poke vs many callers | `POST /api/one-poke` |
+| Who is paying the gas | `POST /api/gas-lead` |
+| Jupiter DCA still filling | `POST /api/jup-dca` |
+| Hyperliquid position split | `POST /api/hl-split` |
 
 Opening a card on the first desk sends `action: "cohort"` to the same route. The sell page on the third desk sends `side: "SELL"` to the same route. Neither fires by itself.
 

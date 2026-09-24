@@ -14,10 +14,19 @@ export const CACHE_MS = 2 * 60 * 1000;
 export const NETFLOW_COST = 5;
 export const FLOW_COST = 1;
 export const TRADES_COST = 1;
+export const CHAIN_RANK_COST = 1;
+export const DCA_COST = 1;
+export const POSITION_COST = 1;
+
+/** Top kept buy is one poke when it is at least this share of the kept page USD. */
+export const POKE_SHARE = 0.5;
 
 export const NETFLOW_PATH = "/api/v1/smart-money/netflow";
 export const FLOW_PATH = "/api/v1/tgm/flow-intelligence";
 export const TRADES_PATH = "/api/v1/tgm/who-bought-sold";
+export const CHAIN_RANK_PATH = "/api/v1/chains/chain-rank";
+export const DCA_PATH = "/api/v1/tgm/jup-dca";
+export const POSITION_PATH = "/api/v1/tgm/position-intelligence";
 
 /**
  * Quote legs and gas tokens. Refused only when the symbol is known

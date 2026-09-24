@@ -43,17 +43,45 @@ const DOORS: {
     title: "Cohort and sign",
     copy: "The largest absolute 1-day cohort and its sign, then AGREE, DISAGREE, or UNAVAILABLE. This desk does not explain a price.",
   },
+  {
+    href: "/one-poke",
+    tone: "poke",
+    kicker: "The poke",
+    title: "One poke vs many callers",
+    copy: "On the buy page, is one kept wallet at least half the USD, or are the callers spread out. No sell call, and no wallet table.",
+  },
+  {
+    href: "/gas",
+    tone: "gas",
+    kicker: "The lamp",
+    title: "Who is paying the gas",
+    copy: "Seven days of EVM gas USD. Does Ethereum still lead, and which chain name decides it.",
+  },
+  {
+    href: "/jup-dca",
+    tone: "dca",
+    kicker: "The vault",
+    title: "Jupiter DCA still filling",
+    copy: "A Solana mint. Still filling, closed, or none. A missing list is not a made-up vault.",
+  },
+  {
+    href: "/hl-split",
+    tone: "split",
+    kicker: "The split",
+    title: "Hyperliquid position split",
+    copy: "Smart HL Perps against Whales on that perp book. Split, aligned, or flat. Not a spot netflow guess.",
+  },
 ];
 
 export default function HomePage() {
   return (
     <section>
       <p className="kicker on-wood">The room</p>
-      <h1 className="nameplate-title">Five desks, one board</h1>
+      <h1 className="nameplate-title">Nine desks, one board</h1>
       <p className="room-lede">
         The in-app agent asks these questions and then asks you to sign up. Each desk answers from
-        the indexed board: one netflow page, a flow split, or a buy page. The brass rail is the
-        credit counter for this server process.
+        one Nansen call: a netflow page, a flow split, a buy page, chain gas, a Jupiter vault, or a
+        Hyperliquid book. The line under the nav is the credit counter for this server process.
       </p>
       <ul className="door-grid">
         {DOORS.map((door) => (
