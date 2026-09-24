@@ -1,6 +1,7 @@
 import { BrandMark } from "@/components/brand";
 import { CreditBar } from "@/components/credit-bar";
 import { Nav } from "@/components/desk";
+import { SaloonGround } from "@/components/saloon-ground";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Rye, Source_Serif_4, Special_Elite } from "next/font/google";
@@ -32,18 +33,19 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${wire.variable} h-full antialiased`}>
       <body className="min-h-full">
-        <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col px-4 py-6 sm:px-6">
+        <SaloonGround />
+        <div className="shell mx-auto flex min-h-full w-full max-w-6xl flex-col px-4 py-6 sm:px-6">
           <header className="mb-4 flex items-center gap-3">
             <BrandMark />
             <div>
               <p className="nameplate-title text-[1.7rem] sm:text-3xl">Off Book</p>
-              <p className="text-sm text-[#e7d3b0]">Five desks. Nansen is the index.</p>
+              <p className="text-sm text-[#5c3d28]">Five desks. Nansen is the index.</p>
             </div>
           </header>
           <Nav />
           <CreditBar />
-          <main className="flex-1">{children}</main>
-          <footer className="mt-8 text-sm leading-relaxed text-[#e7d3b0]">
+          <main className="room-main flex-1">{children}</main>
+          <footer className="site-footer">
             The server calls Nansen. This page does not scan blocks, does not ask for a seed or a
             signature, and does not invent a figure the API did not return.
           </footer>

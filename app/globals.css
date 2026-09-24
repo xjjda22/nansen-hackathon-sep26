@@ -19,21 +19,43 @@
 }
 
 body {
-  background-color: #120c09;
-  background-image:
-    linear-gradient(180deg, rgba(231, 197, 106, 0.22), rgba(231, 197, 106, 0) 7rem),
-    repeating-linear-gradient(
-      90deg,
-      #2a1810 0 14px,
-      #3a2418 14px 46px,
-      #1c100c 46px 48px,
-      #321f14 48px 92px,
-      #140e0b 92px 94px,
-      #3d2819 94px 132px,
-      #24160f 132px 168px
-    );
-  color: var(--cream);
+  background-color: #f3ead8;
+  color: var(--ink);
   font-family: var(--font-serif), "Iowan Old Style", Palatino, serif;
+}
+
+.saloon-ground {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.saloon-ground svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+  padding-bottom: 3rem;
+}
+
+.room-main {
+  display: flow-root;
+  min-width: 0;
+}
+
+.site-footer {
+  position: relative;
+  z-index: 2;
+  margin-top: 2.5rem;
+  color: #3a2718;
+  font-size: 0.95rem;
+  line-height: 1.55;
 }
 
 .font-display {
@@ -45,13 +67,13 @@ body {
   font-family: var(--font-rye), Copperplate, serif;
   font-size: clamp(2rem, 5vw, 3.15rem);
   line-height: 1.05;
-  color: #e7c56a;
+  color: #6e2e18;
 }
 
 .room-lede {
   max-width: 42rem;
   margin: 0.7rem 0 1.35rem;
-  color: #f0e2c8;
+  color: #3a2718;
   line-height: 1.55;
 }
 
@@ -93,26 +115,44 @@ body {
 
 .door-grid {
   display: grid;
-  gap: 0.9rem;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: max-content;
+  align-items: start;
+  gap: 1.25rem;
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.door {
+.door-slot {
   position: relative;
+  z-index: 1;
   display: flex;
-  min-height: 100%;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding: 1.05rem 1.1rem 1.15rem;
-  text-decoration: none;
-  color: inherit;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+  min-width: 0;
+  min-height: max-content;
+  height: auto;
 }
 
-.door:hover {
-  transform: translateY(-2px);
+.door {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  height: auto;
+  min-height: max-content;
+  max-width: 100%;
+  padding: 1.05rem 1.1rem 1.15rem;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 10px 24px rgba(42, 24, 16, 0.12);
+}
+
+.door-copy {
+  overflow-wrap: anywhere;
 }
 
 .door-title {
@@ -135,7 +175,7 @@ body {
 }
 
 .kicker.on-wood {
-  color: #e7c56a;
+  color: #8c3a24;
 }
 
 .mark {
@@ -147,10 +187,14 @@ body {
 
 .desk {
   position: relative;
+  z-index: 1;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   padding: 1.2rem 1.15rem 1.35rem;
   box-shadow:
     inset 0 1px 0 rgba(255, 244, 214, 0.35),
-    0 18px 40px rgba(0, 0, 0, 0.42);
+    0 14px 32px rgba(42, 24, 16, 0.12);
 }
 
 .desk h1 {
@@ -414,24 +458,32 @@ body {
 
 @media (min-width: 900px) {
   .door-grid {
-    grid-template-columns: repeat(12, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .door-slot-ledger {
-    grid-column: span 7;
+    grid-column: 1;
+    grid-row: 1;
   }
 
   .door-slot-weather {
-    grid-column: span 5;
+    grid-column: 2;
+    grid-row: 1;
   }
 
-  .door-slot-blotter,
+  .door-slot-blotter {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
   .door-slot-rails {
-    grid-column: span 6;
+    grid-column: 2;
+    grid-row: 2;
   }
 
   .door-slot-wire {
-    grid-column: span 12;
+    grid-column: 1 / -1;
+    grid-row: 3;
   }
 
   .hemispheres,
