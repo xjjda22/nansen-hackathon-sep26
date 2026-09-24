@@ -83,32 +83,30 @@ body {
   gap: 0.35rem;
   margin-bottom: 0.9rem;
   padding: 0.4rem;
-  background: linear-gradient(180deg, #f0d48a, #b8893c 48%, #6d5426);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 248, 220, 0.7),
-    0 2px 0 #3a2414;
+  background: #f6edd9;
+  border: 1px solid #8c3a24;
 }
 
 .rail a {
-  color: #2a1810;
+  color: #8c3a24;
   text-decoration: none;
   font-size: 0.82rem;
   font-weight: 650;
   padding: 0.4rem 0.6rem;
-  background: rgba(244, 234, 215, 0.38);
+  background: transparent;
 }
 
 .rail a:hover,
 .rail a:focus-visible {
-  background: #f4ead7;
+  background: rgba(140, 58, 36, 0.08);
 }
 
 .plaque {
   margin-bottom: 1.2rem;
   padding: 0.6rem 0.75rem;
-  background: linear-gradient(180deg, #3a2718, #24160f);
-  border: 1px solid #c4a15a;
-  color: #f0e2c8;
+  background: #f6edd9;
+  border: 1px solid #8c3a24;
+  color: #2a1810;
   font-size: 0.875rem;
   line-height: 1.45;
 }
@@ -355,42 +353,19 @@ body {
 
 .desk-rails,
 .door-rails {
-  background:
-    linear-gradient(#e7c56a, #e7c56a) 0 4.35rem / 100% 3px no-repeat,
-    linear-gradient(#8c3a24, #8c3a24) 0 4.85rem / 100% 3px no-repeat,
+  background-color: #f6edd9;
+  background-image:
+    linear-gradient(#8c3a24, #8c3a24) 0 4.2rem / 100% 2px no-repeat,
+    linear-gradient(#8c3a24, #8c3a24) 0 4.75rem / 100% 2px no-repeat,
     repeating-linear-gradient(
         90deg,
         transparent 0 22px,
-        rgba(231, 197, 106, 0.85) 22px 26px,
-        transparent 26px 48px
+        rgba(140, 58, 36, 0.75) 22px 25px,
+        transparent 25px 48px
       )
-      0 4.25rem / 100% 0.95rem no-repeat,
-    #24160f;
-  color: #f4ead7;
-  border: 1px solid #c4a15a;
-}
-
-.desk-rails h1,
-.door-rails .door-title,
-.desk-wire h1,
-.door-wire .door-title {
-  color: #e7c56a;
-}
-
-.desk-rails .kicker,
-.door-rails .kicker,
-.desk-wire .kicker,
-.door-wire .kicker,
-.desk-rails .mark,
-.door-rails .mark,
-.desk-wire .mark,
-.door-wire .mark {
-  color: #e7c56a;
-}
-
-.desk-rails .aside,
-.desk-wire .aside {
-  color: #e7d3b0;
+      0 4.15rem / 100% 0.85rem no-repeat;
+  color: #2a1810;
+  border: 1px solid #8c3a24;
 }
 
 .ticket {
@@ -407,43 +382,38 @@ body {
 
 .desk-wire,
 .door-wire {
-  background:
-    repeating-linear-gradient(90deg, rgba(231, 197, 106, 0.16) 0 1px, transparent 1px 13px),
-    #1a1410;
-  color: #f4ead7;
-  border: 1px dashed #c4a15a;
+  background-color: #f6edd9;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(140, 58, 36, 0.28) 0 1px,
+    transparent 1px 13px
+  );
+  color: #2a1810;
+  border: 1px dashed #8c3a24;
   font-family: var(--font-wire), "Courier New", monospace;
 }
 
 .desk-wire h1,
 .door-wire .door-title {
   font-family: var(--font-rye), Copperplate, serif;
+  color: #8c3a24;
 }
 
 .wire-line {
   font-family: var(--font-wire), "Courier New", monospace;
   font-size: 1.35rem;
   line-height: 1.35;
-  color: #f4ead7;
+  color: #2a1810;
 }
 
 .stamp {
   display: inline-block;
-  border: 2px solid #e7c56a;
-  color: #e7c56a;
+  border: 2px solid #8c3a24;
+  color: #8c3a24;
   padding: 0.15rem 0.55rem;
   letter-spacing: 0.18em;
   font-family: var(--font-wire), "Courier New", monospace;
   transform: rotate(-1.5deg);
-}
-
-.night-line {
-  color: #f4ead7;
-  border-color: #e7c56a;
-}
-
-.night-line:hover {
-  background: rgba(231, 197, 106, 0.12);
 }
 
 @media (min-width: 640px) {

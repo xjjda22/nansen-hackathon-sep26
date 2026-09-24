@@ -42,7 +42,7 @@ export function CohortSignForm() {
 
   return (
     <div className="space-y-5">
-      <BoardPicker disabled={pending} night onPick={pick} />
+      <BoardPicker disabled={pending} onPick={pick} />
       <form onSubmit={onSubmit} className="space-y-3">
         <label className="block text-sm font-semibold" htmlFor="flow-chain">
           Chain
