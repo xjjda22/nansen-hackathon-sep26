@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <BrandMark />
             <div>
               <p className="nameplate-title text-[1.7rem] sm:text-3xl">Off Book</p>
-              <p className="text-sm text-[#5c3d28]">Nine desks. Stamp first.</p>
+              <p className="text-sm text-[#5c3d28]">Five desks. Stamp first.</p>
             </div>
           </header>
           <Nav />

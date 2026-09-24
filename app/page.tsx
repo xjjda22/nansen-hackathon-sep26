@@ -43,34 +43,6 @@ const DOORS: {
     title: "Cohort and sign",
     copy: "Agree, disagree, flat, or unavailable.",
   },
-  {
-    href: "/one-poke",
-    tone: "poke",
-    kicker: "Poke",
-    title: "One poke vs many callers",
-    copy: "Top buy at least 50%, or not.",
-  },
-  {
-    href: "/gas",
-    tone: "gas",
-    kicker: "Gas",
-    title: "Who is paying the gas",
-    copy: "Ethereum still leads 7-day EVM gas, or not.",
-  },
-  {
-    href: "/jup-dca",
-    tone: "dca",
-    kicker: "Vault",
-    title: "Jupiter DCA still filling",
-    copy: "Still filling, closed, or none.",
-  },
-  {
-    href: "/hl-split",
-    tone: "split",
-    kicker: "Split",
-    title: "Hyperliquid position split",
-    copy: "Split, aligned, or flat on a perp ticker.",
-  },
 ];
 
 export default function HomePage() {

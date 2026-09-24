@@ -8,10 +8,6 @@ const LINKS = [
   ["/both-sides", "Blotter"],
   ["/two-chains", "Rails"],
   ["/cohort-sign", "Wire"],
-  ["/one-poke", "Poke"],
-  ["/gas", "Gas"],
-  ["/jup-dca", "Vault"],
-  ["/hl-split", "Split"],
 ] as const;
 
 export function Nav() {

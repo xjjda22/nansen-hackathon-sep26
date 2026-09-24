@@ -7,14 +7,10 @@ import {
   buyerPageVerdict,
   classifyTokenInput,
   cohortSentence,
-  gasLead,
-  hlSplit,
   judgeDay,
   judgeFive,
-  jupDcaVerdict,
   notOnYourList,
   parseBook,
-  pokeVerdict,
   publicPayload,
   sameTickerTwoChains,
   sectorWeather,
@@ -281,91 +277,6 @@ test("flat days do not agree, null is not zero, and fresh wallets are unavailabl
     "DISAGREE",
   );
   assert.equal(judgeFive(day.winners, { smart_trader_net_flow_usd: 3 }, false), "AGREE");
-});
-
-test("one poke is half the kept buy page and never reads sold volume", () => {
-  const one = pokeVerdict(
-    [
-      { bought: 80 },
-      { bought: 20 },
-      { bought: 0.1 },
-    ],
-    true,
-  );
-  assert.equal(one.verdict, "ONE_POKE");
-  assert.ok(one.sentence.startsWith("ONE POKE"));
-  assert.equal(one.sentence.includes("page of"), false);
-  assert.ok(one.share != null && one.share >= 0.5);
-  const many = pokeVerdict(
-    [
-      { bought: 40 },
-      { bought: 35 },
-      { bought: 25 },
-    ],
-    false,
-  );
-  assert.equal(many.verdict, "MANY_CALLERS");
-  assert.equal(many.pageCut, true);
-  assert.equal(pokeVerdict([], true).verdict, "NO_TRADES");
-  assert.equal(pokeVerdict([{ bought: null }, { bought: null }], true).verdict, "VOLUME_ABSENT");
-});
-
-test("ethereum still leads EVM gas, and a null page is missing", () => {
-  const mainnet = gasLead([
-    { chain: "ethereum", gasUsd: 100 },
-    { chain: "base", gasUsd: 40 },
-    { chain: "arbitrum", gasUsd: 20 },
-  ]);
-  assert.equal(mainnet.verdict, "MAINNET_STILL_BURNS_MOST");
-  assert.equal(mainnet.leader, "ethereum");
-  const l2 = gasLead([
-    { chain: "base", gasUsd: 90 },
-    { chain: "ethereum", gasUsd: 10 },
-  ]);
-  assert.equal(l2.verdict, "L2_BURNS_MOST");
-  assert.equal(l2.leader, "base");
-  assert.match(l2.sentence, /^base leads/);
-  assert.equal(l2.sentence.includes("L2"), false);
-  assert.equal(gasLead([{ chain: "ethereum", gasUsd: null }]).verdict, "GAS_MISSING");
-});
-
-test("jupiter vaults are still filling, closed, or none", () => {
-  assert.equal(jupDcaVerdict(null).verdict, "NONE");
-  assert.equal(jupDcaVerdict({}).verdict, "NONE");
-  assert.equal(jupDcaVerdict({ data: [] }).verdict, "NONE");
-  const filling = jupDcaVerdict({
-    data: [
-      { status: "Active", deposit_amount: 10, deposit_spent: 4 },
-      { status: "Closed", deposit_amount: 10, deposit_spent: 10 },
-    ],
-    pagination: { is_last_page: false },
-  });
-  assert.equal(filling.verdict, "STILL_FILLING");
-  assert.equal(filling.leftover, 6);
-  assert.equal(filling.pageCut, true);
-  assert.equal(jupDcaVerdict({ data: [{ status: "Closed" }] }).verdict, "CLOSED");
-  const noFigures = jupDcaVerdict({ data: [{ status: "Active" }] });
-  assert.equal(noFigures.verdict, "STILL_FILLING");
-  assert.equal(noFigures.leftover, null);
-});
-
-test("hyperliquid cohorts split, align, or stay flat without a spot fill-in", () => {
-  const split = hlSplit({
-    data: [{ smart_trader_longs_usd: 100, smart_trader_shorts_usd: 10, whale_longs_usd: 5, whale_shorts_usd: 80 }],
-  });
-  assert.equal(split.verdict, "SPLIT");
-  const aligned = hlSplit({
-    data: [{ smart_trader_longs_usd: 100, smart_trader_shorts_usd: 10, whale_longs_usd: 90, whale_shorts_usd: 5 }],
-  });
-  assert.equal(aligned.verdict, "ALIGNED");
-  assert.equal(
-    hlSplit({
-      data: [{ smart_trader_longs_usd: null, smart_trader_shorts_usd: 10, whale_longs_usd: 90, whale_shorts_usd: 5 }],
-    }).verdict,
-    "FLAT",
-  );
-  assert.equal(hlSplit({ data: [] }).verdict, "FLAT");
-  assert.equal(hlSplit(null).sentence.includes("spot netflow"), true);
 });
 
 test("public payload drops label fields", () => {
