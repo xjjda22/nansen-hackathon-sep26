@@ -1,7 +1,7 @@
 "use client";
 
-import type { Credits } from "@/components/use-desk";
 import { useScore } from "@/components/score";
+import type { Credits } from "@/components/use-desk";
 import { useEffect, useState } from "react";
 
 export function CreditBar() {
@@ -31,15 +31,24 @@ export function CreditBar() {
 
   const spent = credits ? String(credits.spentThisSession) : "…";
   const left = credits && credits.remaining != null ? String(credits.remaining) : "—";
-  const last = !credits ? "—" : credits.cached ? "cache" : String(credits.used);
+  const last = !credits
+    ? "—"
+    : credits.cached
+      ? "Cache"
+      : credits.used > 0
+        ? `Last charge ${credits.used}`
+        : "No call";
 
   return (
     <p className="plaque" aria-live="polite">
       <span>Spent {spent}</span>
+      <span aria-hidden="true">·</span>
       <span>Left {left}</span>
-      <span>Last {last}</span>
+      <span aria-hidden="true">·</span>
+      <span>{last}</span>
+      <span aria-hidden="true">·</span>
       <span>
-        Score {score.right}–{score.wrong}
+        {score.right} right · {score.wrong} wrong
       </span>
     </p>
   );

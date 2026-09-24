@@ -1,8 +1,7 @@
 "use client";
 
 import { CallNote } from "@/components/call-note";
-import { labelOf, RawJson, RoundMark, StampPicker } from "@/components/play";
-import { markRound } from "@/components/score";
+import { labelOf, RawJson, recordRound, roundHit, RoundMark, StampPicker } from "@/components/play";
 import { Status } from "@/components/status";
 import { Button } from "@/components/ui/button";
 import { useDesk, type Credits } from "@/components/use-desk";
@@ -42,7 +41,7 @@ export function GasLeadForm() {
     if (!bet || result) return;
     const data = await run<Gas>("/api/gas-lead", {});
     if (!data) return;
-    markRound(bet === revealId(data));
+    recordRound(bet, revealId(data), BETS, Boolean(data.credits.cached));
     setResult(data);
   }
 
@@ -84,7 +83,7 @@ export function GasLeadForm() {
       {result ? (
         <div className="space-y-3">
           <RoundMark
-            hit={bet === revealId(result)}
+            hit={roundHit(bet, revealId(result), BETS)}
             you={labelOf(BETS, bet)}
             api={revealId(result) === "GAS_MISSING" ? "Gas missing" : labelOf(BETS, revealId(result))}
           />

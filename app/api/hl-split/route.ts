@@ -1,5 +1,5 @@
 import { POSITION_COST, POSITION_PATH } from "@/lib/constants";
-import { creditView, nansenMessage, nansenPost } from "@/lib/nansen";
+import { creditView, noCallCredits, nansenMessage, nansenPost } from "@/lib/nansen";
 import { hlSplit, publicPayload } from "@/lib/rules";
 import { NextResponse } from "next/server";
 
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     payload = (await request.json()) as typeof payload;
   } catch {
     return NextResponse.json(
-      { ok: false, error: "The body was not JSON.", credits: creditView() },
+      { ok: false, error: "The body was not JSON.", credits: noCallCredits() },
       { status: 400 },
     );
   }
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       {
         ok: false,
         error: "An empty token makes no call. This desk does not read spot netflow.",
-        credits: creditView(),
+        credits: noCallCredits(),
       },
       { status: 400 },
     );

@@ -324,6 +324,8 @@ test("ethereum still leads EVM gas, and a null page is missing", () => {
   ]);
   assert.equal(l2.verdict, "L2_BURNS_MOST");
   assert.equal(l2.leader, "base");
+  assert.match(l2.sentence, /^base leads/);
+  assert.equal(l2.sentence.includes("L2"), false);
   assert.equal(gasLead([{ chain: "ethereum", gasUsd: null }]).verdict, "GAS_MISSING");
 });
 

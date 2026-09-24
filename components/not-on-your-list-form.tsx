@@ -1,8 +1,7 @@
 "use client";
 
 import { CallNote } from "@/components/call-note";
-import { labelOf, RawJson, RoundMark, StampPicker } from "@/components/play";
-import { markRound } from "@/components/score";
+import { labelOf, RawJson, recordRound, roundHit, RoundMark, StampPicker } from "@/components/play";
 import { Status } from "@/components/status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,7 +55,7 @@ export function NotOnYourListForm() {
     if (!bet || result) return;
     const data = await run<BoardResult>("/api/not-on-your-list", { book });
     if (!data) return;
-    markRound(bet === stampOf(data));
+    recordRound(bet, stampOf(data), BETS, Boolean(data.credits.cached));
     setResult(data);
     setCohorts({});
   }
@@ -110,7 +109,7 @@ export function NotOnYourListForm() {
       {pending ? <Status kind="loading">One request is in flight.</Status> : null}
       {result ? (
         <div className="space-y-4">
-          <RoundMark hit={bet === reveal} you={labelOf(BETS, bet)} api={labelOf(BETS, reveal)} />
+          <RoundMark hit={roundHit(bet, reveal, BETS)} you={labelOf(BETS, bet)} api={labelOf(BETS, reveal)} />
           <p className="rule-mark">
             {result.count}
             <small>off the book · floor {formatUsd(result.floorUsd)}</small>

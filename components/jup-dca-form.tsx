@@ -1,8 +1,7 @@
 "use client";
 
 import { CallNote } from "@/components/call-note";
-import { labelOf, RawJson, RoundMark, StampPicker } from "@/components/play";
-import { markRound } from "@/components/score";
+import { labelOf, RawJson, recordRound, roundHit, RoundMark, StampPicker } from "@/components/play";
 import { Status } from "@/components/status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +36,7 @@ export function JupDcaForm() {
     if (!bet || result) return;
     const data = await run<Dca>("/api/jup-dca", { tokenAddress });
     if (!data) return;
-    markRound(bet === data.verdict);
+    recordRound(bet, data.verdict, BETS, Boolean(data.credits.cached));
     setResult(data);
   }
 
@@ -83,7 +82,11 @@ export function JupDcaForm() {
       {pending ? <Status kind="loading">One request is in flight.</Status> : null}
       {result ? (
         <div className="space-y-3">
-          <RoundMark hit={bet === result.verdict} you={labelOf(BETS, bet)} api={labelOf(BETS, result.verdict)} />
+          <RoundMark
+            hit={roundHit(bet, result.verdict, BETS)}
+            you={labelOf(BETS, bet)}
+            api={labelOf(BETS, result.verdict)}
+          />
           <p className="stamp">{result.verdict.replaceAll("_", " ")}</p>
           <ul className="pair">
             <li>

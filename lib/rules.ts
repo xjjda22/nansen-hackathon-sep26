@@ -700,7 +700,7 @@ export function gasLead(rows: GasRow[]) {
     verdict: "L2_BURNS_MOST" as const,
     leader: leader.chain,
     leaderGas: leader.gasUsd,
-    sentence: `L2 BURNS MOST. ${leader.chain} leads EVM gas USD over 7 days. Ethereum does not.`,
+    sentence: `${leader.chain} leads 7-day EVM gas USD. Ethereum does not.`,
     named,
   };
 }

@@ -1,5 +1,5 @@
 import { FLOW_COST, FLOW_PATH } from "@/lib/constants";
-import { creditView, nansenMessage, nansenPost, noteCombinedUse } from "@/lib/nansen";
+import { creditView, noCallCredits, nansenMessage, nansenPost, noteCombinedUse } from "@/lib/nansen";
 import {
   classifyTokenInput,
   isFlowChain,
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     payload = (await request.json()) as typeof payload;
   } catch {
     return NextResponse.json(
-      { ok: false, error: "The body was not JSON.", credits: creditView() },
+      { ok: false, error: "The body was not JSON.", credits: noCallCredits() },
       { status: 400 },
     );
   }
@@ -36,13 +36,13 @@ export async function POST(request: Request) {
 
   if (!chain && !rawAddress.trim()) {
     return NextResponse.json(
-      { ok: false, error: "A symbol alone makes no call. Send a chain and a token address.", credits: creditView() },
+      { ok: false, error: "A symbol alone makes no call. Send a chain and a token address.", credits: noCallCredits() },
       { status: 400 },
     );
   }
   if (!chain || !rawAddress.trim()) {
     return NextResponse.json(
-      { ok: false, error: "A symbol alone makes no call. Both a chain and a token address are required.", credits: creditView() },
+      { ok: false, error: "A symbol alone makes no call. Both a chain and a token address are required.", credits: noCallCredits() },
       { status: 400 },
     );
   }
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
           chain === "hyperliquid"
             ? "Flow intelligence has no hyperliquid chain. hyperevm is a different chain. The call was not sent."
             : "That chain is not on flow intelligence.",
-        credits: creditView(),
+        credits: noCallCredits(),
       },
       { status: 400 },
     );
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
   const classified = classifyTokenInput(rawAddress);
   if (classified.kind !== "address") {
     return NextResponse.json(
-      { ok: false, error: "A symbol alone makes no call. Paste the token address, or pick a cached row.", credits: creditView() },
+      { ok: false, error: "A symbol alone makes no call. Paste the token address, or pick a cached row.", credits: noCallCredits() },
       { status: 400 },
     );
   }
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
       {
         ok: false,
         error: `${symbol.toUpperCase()} is on the quote-leg list from the board. The call was not sent.`,
-        credits: creditView(),
+        credits: noCallCredits(),
       },
       { status: 400 },
     );

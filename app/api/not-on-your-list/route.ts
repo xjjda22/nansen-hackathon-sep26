@@ -5,7 +5,7 @@ import {
   NETFLOW_COST,
   NETFLOW_PATH,
 } from "@/lib/constants";
-import { creditView, nansenMessage, nansenPost, netflowCacheKey, peekCache } from "@/lib/nansen";
+import { creditView, noCallCredits, nansenMessage, nansenPost, netflowCacheKey, peekCache } from "@/lib/nansen";
 import {
   cohortSentence,
   findSurvivor,
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   const payload = await readPayload(request);
   if (!payload) {
     return NextResponse.json(
-      { ok: false, error: "The body was not JSON.", credits: creditView() },
+      { ok: false, error: "The body was not JSON.", credits: noCallCredits() },
       { status: 400 },
     );
   }
@@ -43,7 +43,7 @@ async function board(book: string) {
   const preview = notOnYourList([], true, book);
   if (!preview.call) {
     return NextResponse.json(
-      { ok: false, error: preview.error, ignored: preview.ignored, credits: creditView() },
+      { ok: false, error: preview.error, ignored: preview.ignored, credits: noCallCredits() },
       { status: 400 },
     );
   }
@@ -67,7 +67,7 @@ async function cohort(payload: Payload, book: string) {
       {
         ok: false,
         error: "A cohort read needs a chain and a token address from a card that already survived.",
-        credits: creditView(),
+        credits: noCallCredits(),
       },
       { status: 400 },
     );
@@ -77,7 +77,7 @@ async function cohort(payload: Payload, book: string) {
       {
         ok: false,
         error: "Flow intelligence has no hyperliquid chain. hyperevm is a different chain.",
-        credits: creditView(),
+        credits: noCallCredits(),
       },
       { status: 400 },
     );
@@ -88,7 +88,7 @@ async function cohort(payload: Payload, book: string) {
       {
         ok: false,
         error: "The board expired. Read the list again before opening a card.",
-        credits: creditView(),
+        credits: noCallCredits(),
       },
       { status: 409 },
     );
@@ -102,7 +102,7 @@ async function cohort(payload: Payload, book: string) {
   }
   const list = notOnYourList(parsed.rows, parsed.isLastPage, book);
   if (!list.call) {
-    return NextResponse.json({ ok: false, error: list.error, credits: creditView() }, { status: 400 });
+    return NextResponse.json({ ok: false, error: list.error, credits: noCallCredits() }, { status: 400 });
   }
   const card = findSurvivor(list.cards, chain, tokenAddress);
   if (!card) {
@@ -110,7 +110,7 @@ async function cohort(payload: Payload, book: string) {
       {
         ok: false,
         error: "That row is not one of the names this book left. The cohort call was not sent.",
-        credits: creditView(),
+        credits: noCallCredits(),
       },
       { status: 400 },
     );

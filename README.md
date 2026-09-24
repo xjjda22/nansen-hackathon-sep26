@@ -27,11 +27,13 @@ Open [http://127.0.0.1:43127](http://127.0.0.1:43127).
 1. Pick the stamp on the desk.
 2. Fill the input the desk asks for. A ticker with no address does not call. An empty book does not call.
 3. Press the call button. It stays off while the request is in flight, and it stays off until a stamp is locked.
-4. The desk prints RIGHT or WRONG, the API stamp, and the figure that decided it. The score in the top line is this browser session.
+4. The desk prints RIGHT or WRONG, the API stamp, and the figure that decided it. If the payload has no stamp you could lock (no trades, volume absent, gas missing, no flow), the round is NO SCORE. A cached replay shows the stamp and does not add a point. The score on the top line is this browser session: N right · N wrong.
 
 Each desk shows its route, the Nansen path, and the credit cost. The response JSON is behind **Response**, collapsed.
 
-A successful body is cached for two minutes. The top line is credits spent in this server process, account remaining when Nansen sends it, and the last charge. If the account cannot cover a call, the desk shows Nansen's error and does not score a number it did not receive.
+A successful body is cached for two minutes. The top line is credits spent in this server process, account remaining when Nansen sends it, and this click: last charge, cache, or no call. A refusal does not repeat the previous charge. Poke’s 50% is this buy page of 25. The blotter buy page is ordered by bought USD. Gas names the leading chain. If the account cannot cover a call, the desk shows Nansen's error and does not invent a figure.
+
+The audit of this build is [devils-advocate.md](../docs/devils-advocate.md).
 
 The desk does not call profiler labels or `agent/fast`, and it does not walk pages.
 

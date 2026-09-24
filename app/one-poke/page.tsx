@@ -10,7 +10,7 @@ export default function Page() {
       tone="poke"
       kicker="Poke"
       title="One poke vs many callers"
-      lede="Bet the 50% line on the buy page."
+      lede="Bet whether the top buy is at least 50% of this page."
       route="POST /api/one-poke"
       nansen="POST /api/v1/tgm/who-bought-sold"
       cost="1"

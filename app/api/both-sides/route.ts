@@ -1,5 +1,5 @@
 import { BUYERS_PER_PAGE, QUARTER, TRADES_COST, TRADES_PATH } from "@/lib/constants";
-import { creditView, nansenMessage, nansenPost } from "@/lib/nansen";
+import { creditView, noCallCredits, nansenMessage, nansenPost } from "@/lib/nansen";
 import {
   buyerPageVerdict,
   classifyTokenInput,
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     payload = (await request.json()) as Payload;
   } catch {
     return NextResponse.json(
-      { ok: false, error: "The body was not JSON.", credits: creditView() },
+      { ok: false, error: "The body was not JSON.", credits: noCallCredits() },
       { status: 400 },
     );
   }
@@ -42,14 +42,14 @@ export async function POST(request: Request) {
       {
         ok: false,
         error: "A ticker with no chain and no address makes no call.",
-        credits: creditView(),
+        credits: noCallCredits(),
       },
       { status: 400 },
     );
   }
   if (!isTradeChain(chain)) {
     return NextResponse.json(
-      { ok: false, error: "That chain is not on who-bought-sold.", credits: creditView() },
+      { ok: false, error: "That chain is not on who-bought-sold.", credits: noCallCredits() },
       { status: 400 },
     );
   }
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       {
         ok: false,
         error: "A ticker with no address makes no call. Paste the token address, or pick a cached row.",
-        credits: creditView(),
+        credits: noCallCredits(),
       },
       { status: 400 },
     );
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
       {
         ok: false,
         error: `${symbol.toUpperCase()} is on the quote-leg list. The call was not sent. An address typed by itself is not checked against that list.`,
-        credits: creditView(),
+        credits: noCallCredits(),
       },
       { status: 400 },
     );
@@ -88,9 +88,15 @@ export async function POST(request: Request) {
         buy_or_sell: side,
         date: rollingDay(),
         pagination: { page: 1, per_page: BUYERS_PER_PAGE },
+        order_by: [
+          {
+            field: side === "SELL" ? "sold_volume_usd" : "bought_volume_usd",
+            direction: "DESC",
+          },
+        ],
       },
       TRADES_COST,
-      `trades:${chain}:${addressKey}:${side}:${day}`,
+      `trades:v2:${chain}:${addressKey}:${side}:${day}`,
     );
     if (!trades.ok) {
       return NextResponse.json(

@@ -1,5 +1,5 @@
 import { DCA_COST, DCA_PATH } from "@/lib/constants";
-import { creditView, nansenMessage, nansenPost } from "@/lib/nansen";
+import { creditView, noCallCredits, nansenMessage, nansenPost } from "@/lib/nansen";
 import { classifyTokenInput, isSolanaAddress, jupDcaVerdict, publicPayload } from "@/lib/rules";
 import { NextResponse } from "next/server";
 
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     payload = (await request.json()) as typeof payload;
   } catch {
     return NextResponse.json(
-      { ok: false, error: "The body was not JSON.", credits: creditView() },
+      { ok: false, error: "The body was not JSON.", credits: noCallCredits() },
       { status: 400 },
     );
   }
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       {
         ok: false,
         error: "A ticker with no Solana mint makes no call. Paste the mint address.",
-        credits: creditView(),
+        credits: noCallCredits(),
       },
       { status: 400 },
     );

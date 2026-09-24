@@ -57,6 +57,11 @@ export function creditView(used?: number, cached?: boolean): CreditView {
   };
 }
 
+/** A refusal that did not call Nansen. Does not reuse the previous charge. */
+export function noCallCredits(): CreditView {
+  return creditView(0, false);
+}
+
 export function peekCache(cacheKey: string): CacheEntry | null {
   const hit = store().cache.get(cacheKey);
   if (!hit) return null;

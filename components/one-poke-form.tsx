@@ -2,13 +2,12 @@
 
 import { BoardPicker, type BoardRow } from "@/components/board-picker";
 import { CallNote } from "@/components/call-note";
-import { labelOf, RawJson, RoundMark, StampPicker } from "@/components/play";
-import { markRound } from "@/components/score";
+import { labelOf, RawJson, recordRound, roundHit, RoundMark, StampPicker } from "@/components/play";
 import { Status } from "@/components/status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDesk, type Credits } from "@/components/use-desk";
-import { POKE_SHARE, TRADE_CHAINS } from "@/lib/constants";
+import { BUYERS_PER_PAGE, POKE_SHARE, TRADE_CHAINS } from "@/lib/constants";
 import { useState } from "react";
 
 const BETS = [
@@ -52,7 +51,7 @@ export function OnePokeForm() {
     if (!bet || result) return;
     const data = await run<Poke>("/api/one-poke", { chain, tokenAddress, symbol, side: "BUY" });
     if (!data) return;
-    markRound(bet === data.verdict);
+    recordRound(bet, data.verdict, BETS, Boolean(data.credits.cached));
     setResult(data);
   }
 
@@ -67,7 +66,7 @@ export function OnePokeForm() {
     <div className="space-y-5">
       <p className="rule-mark">
         {Math.round(POKE_SHARE * 100)}%
-        <small>Top buy at or above this is one poke.</small>
+        <small>Of this buy page of {BUYERS_PER_PAGE}. At or above is one poke.</small>
       </p>
       <BoardPicker disabled={pending || Boolean(result)} onPick={pick} />
       <form onSubmit={onSubmit} className="space-y-3">
@@ -124,13 +123,17 @@ export function OnePokeForm() {
       {pending ? <Status kind="loading">One request is in flight.</Status> : null}
       {result ? (
         <div className="space-y-3">
-          <RoundMark hit={bet === result.verdict} you={labelOf(BETS, bet)} api={labelOf(REVEALS, result.verdict)} />
+          <RoundMark
+            hit={roundHit(bet, result.verdict, BETS)}
+            you={labelOf(BETS, bet)}
+            api={labelOf(REVEALS, result.verdict)}
+          />
           <p className="stamp">{result.verdict.replaceAll("_", " ")}</p>
           {percent ? (
             <>
               <p className="rule-mark">
                 {percent}
-                <small>against the 50% mark</small>
+                <small>of this page of {BUYERS_PER_PAGE}</small>
               </p>
               <div className="meter" role="img" aria-label={`${percent} against 50%`}>
                 <div className="meter-fill" style={{ width: `${Math.min(100, (result.share ?? 0) * 100)}%` }} />
@@ -141,7 +144,7 @@ export function OnePokeForm() {
             <p className="verdict">{result.sentence}</p>
           )}
           <CallNote credits={result.credits} />
-          {result.pageCut ? <p className="aside">Page cut.</p> : null}
+          {result.pageCut ? <p className="aside">First page only.</p> : null}
           <RawJson value={result.raw} />
         </div>
       ) : null}

@@ -1,5 +1,5 @@
 import { NETFLOW_BODY, NETFLOW_COST, NETFLOW_PATH } from "@/lib/constants";
-import { creditView, nansenMessage, nansenPost, netflowCacheKey } from "@/lib/nansen";
+import { creditView, noCallCredits, nansenMessage, nansenPost, netflowCacheKey } from "@/lib/nansen";
 import { parseNetflow, publicPayload, sameTickerTwoChains } from "@/lib/rules";
 import { NextResponse } from "next/server";
 
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     symbol = typeof payload.symbol === "string" ? payload.symbol : "";
   } catch {
     return NextResponse.json(
-      { ok: false, error: "The body was not JSON.", credits: creditView() },
+      { ok: false, error: "The body was not JSON.", credits: noCallCredits() },
       { status: 400 },
     );
   }
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   const preview = sameTickerTwoChains([], true, symbol);
   if (!preview.call) {
     return NextResponse.json(
-      { ok: false, error: preview.error, credits: creditView() },
+      { ok: false, error: preview.error, credits: noCallCredits() },
       { status: 400 },
     );
   }

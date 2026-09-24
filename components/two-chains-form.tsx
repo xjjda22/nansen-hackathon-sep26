@@ -1,8 +1,7 @@
 "use client";
 
 import { CallNote } from "@/components/call-note";
-import { labelOf, RawJson, RoundMark, StampPicker } from "@/components/play";
-import { markRound } from "@/components/score";
+import { labelOf, RawJson, recordRound, roundHit, RoundMark, StampPicker } from "@/components/play";
 import { Status } from "@/components/status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +51,7 @@ export function TwoChainsForm() {
     if (!bet || result) return;
     const data = await run<TwoChains>("/api/two-chains", { symbol });
     if (!data) return;
-    markRound(bet === stampOf(data));
+    recordRound(bet, stampOf(data), BETS, Boolean(data.credits.cached));
     setResult(data);
   }
 
@@ -93,7 +92,7 @@ export function TwoChainsForm() {
       {pending ? <Status kind="loading">One request is in flight.</Status> : null}
       {result ? (
         <div className="space-y-3">
-          <RoundMark hit={bet === reveal} you={labelOf(BETS, bet)} api={labelOf(BETS, reveal)} />
+          <RoundMark hit={roundHit(bet, reveal, BETS)} you={labelOf(BETS, bet)} api={labelOf(BETS, reveal)} />
           <p className="verdict">{result.sentence}</p>
           <CallNote credits={result.credits} />
           <p className="aside">Floor {formatUsd(result.floorUsd)}.</p>

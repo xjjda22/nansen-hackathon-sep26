@@ -1,5 +1,23 @@
 "use client";
 
+import { markRound } from "@/components/score";
+
+export function roundHit(bet: string, reveal: string, options: { id: string }[]): boolean | null {
+  if (!options.some((option) => option.id === reveal)) return null;
+  return bet === reveal;
+}
+
+export function recordRound(
+  bet: string,
+  reveal: string,
+  options: { id: string }[],
+  cached: boolean,
+): boolean | null {
+  const hit = roundHit(bet, reveal, options);
+  if (hit !== null && !cached) markRound(hit);
+  return hit;
+}
+
 export function StampPicker({
   label,
   options,
@@ -31,13 +49,13 @@ export function StampPicker({
   );
 }
 
-export function RoundMark({ hit, you, api }: { hit: boolean; you: string; api: string }) {
+export function RoundMark({ hit, you, api }: { hit: boolean | null; you: string; api: string }) {
+  const stamp = hit === null ? "NO SCORE" : hit ? "RIGHT" : "WRONG";
+  const line = hit === null ? `API ${api}. That stamp was not in the bet.` : `You ${you}. API ${api}.`;
   return (
     <p className="round-line">
-      <span className="stamp">{hit ? "RIGHT" : "WRONG"}</span>
-      <span>
-        You {you}. API {api}.
-      </span>
+      <span className="stamp">{stamp}</span>
+      <span>{line}</span>
     </p>
   );
 }
