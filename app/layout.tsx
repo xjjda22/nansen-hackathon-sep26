@@ -34,6 +34,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={`${display.variable} ${body.variable} ${wire.variable} h-full antialiased`}>
       <body className="min-h-full">
         <SaloonGround />
+        <header className="topbar">
+          <span>Off Book</span>
+          <span>Meridian Buildathon</span>
+        </header>
         <div className="shell mx-auto flex min-h-full w-full max-w-6xl flex-col px-4 py-6 sm:px-6">
           <header className="mb-4 flex items-center gap-3">
             <BrandMark />

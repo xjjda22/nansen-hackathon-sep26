@@ -38,6 +38,38 @@ body {
   height: 100%;
 }
 
+.topbar {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  background: #111111;
+  color: #f3efe6;
+  padding: 0.75rem 1.35rem;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 560;
+  letter-spacing: 0.22em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.topbar span {
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .topbar {
+    gap: 0.65rem;
+    padding: 0.68rem 0.8rem;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+  }
+}
+
 .shell {
   position: relative;
   z-index: 1;
