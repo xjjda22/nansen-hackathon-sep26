@@ -488,7 +488,7 @@ export function sameTickerTwoChains(rows: FlowRow[], isLastPage: boolean, symbol
       call: true as const,
       status: "absent" as const,
       symbol,
-      sentence: `The board did not include ${symbol}.${pageNote} Netflow has no hyperliquid chain, so the agent screen is outside this check.`,
+      sentence: `The board did not include ${symbol}.${pageNote} Netflow has no hyperliquid chain.`,
       rows: [] as ChainHit[],
       tied: false,
       floorUsd,
@@ -651,7 +651,7 @@ export function pokeVerdict(rows: { bought: number | null }[], isLastPage: boole
   if (share >= POKE_SHARE) {
     return {
       verdict: "ONE_POKE" as const,
-      sentence: `ONE POKE. The largest kept wallet is ${percent} of the kept buy USD on this page of ${BUYERS_PER_PAGE}.`,
+      sentence: `ONE POKE. ${percent}.`,
       share,
       kept: kept.length,
       pageCut,
@@ -659,7 +659,7 @@ export function pokeVerdict(rows: { bought: number | null }[], isLastPage: boole
   }
   return {
     verdict: "MANY_CALLERS" as const,
-    sentence: `MANY CALLERS. The largest kept wallet is ${percent} of the kept buy USD on this page of ${BUYERS_PER_PAGE}.`,
+    sentence: `MANY CALLERS. ${percent}.`,
     share,
     kept: kept.length,
     pageCut,
@@ -678,6 +678,7 @@ export function gasLead(rows: GasRow[]) {
     return {
       verdict: "GAS_MISSING" as const,
       leader: null as string | null,
+      leaderGas: null as number | null,
       sentence: "GAS MISSING. Every EVM gas field on this page was null.",
       named,
     };
@@ -690,6 +691,7 @@ export function gasLead(rows: GasRow[]) {
     return {
       verdict: "MAINNET_STILL_BURNS_MOST" as const,
       leader: leader.chain,
+      leaderGas: leader.gasUsd,
       sentence: "MAINNET STILL BURNS MOST. Ethereum leads EVM gas USD over 7 days.",
       named,
     };
@@ -697,6 +699,7 @@ export function gasLead(rows: GasRow[]) {
   return {
     verdict: "L2_BURNS_MOST" as const,
     leader: leader.chain,
+    leaderGas: leader.gasUsd,
     sentence: `L2 BURNS MOST. ${leader.chain} leads EVM gas USD over 7 days. Ethereum does not.`,
     named,
   };
@@ -819,6 +822,24 @@ export function hlSplit(body: unknown) {
     smartNet,
     whaleNet,
   };
+}
+
+export function publicPayload(body: unknown): unknown {
+  return walkPayload(body);
+}
+
+function walkPayload(value: unknown): unknown {
+  if (typeof value === "string") return value.replace(/nsn_[a-z0-9]+/gi, "[redacted]");
+  if (Array.isArray(value)) return value.map(walkPayload);
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      if (/label/i.test(key)) continue;
+      out[key] = walkPayload(child);
+    }
+    return out;
+  }
+  return value;
 }
 
 export function formatUsd(value: number): string {

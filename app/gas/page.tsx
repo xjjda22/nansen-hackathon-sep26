@@ -8,9 +8,12 @@ export default function Page() {
   return (
     <Desk
       tone="gas"
-      kicker="The lamp"
+      kicker="Gas"
       title="Who is paying the gas"
-      lede="Seven days of EVM gas USD. The stamp says whether Ethereum still leads, and names the chain that does. Base and Arbitrum are printed when the page has them."
+      lede="Bet whether Ethereum still leads 7-day EVM gas USD."
+      route="POST /api/gas-lead"
+      nansen="POST /api/v1/chains/chain-rank"
+      cost="1"
     >
       <GasLeadForm />
     </Desk>

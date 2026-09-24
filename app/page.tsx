@@ -11,77 +11,76 @@ const DOORS: {
   {
     href: "/not-on-your-list",
     tone: "ledger",
-    kicker: "The book",
+    kicker: "Ledger",
     title: "Not on your list",
-    copy: "Write the symbols you already hold. The ledger keeps up to three names with positive 24h smart-money net flow that are absent from that list. An empty book makes no call.",
+    copy: "A name off your book, or none. Empty book does not call.",
   },
   {
     href: "/sector-weather",
     tone: "weather",
-    kicker: "The barometer",
+    kicker: "Weather",
     title: "Sector weather",
-    copy: "One sentence from Nansen's token_sectors. A token in two sectors is counted in full in both. If every sector is positive, nothing is leaving.",
+    copy: "Leaving, nothing leaving, or no weather.",
   },
   {
     href: "/both-sides",
     tone: "blotter",
-    kicker: "The blotter",
+    kicker: "Blotter",
     title: "Same names, both sides",
-    copy: "Of the top page of buyers, how many also sold. If sold volume is missing, the blotter stops. It will not print a direction.",
+    copy: "Also sold, none, no trades, or volume absent.",
   },
   {
     href: "/two-chains",
     tone: "rails",
-    kicker: "The twin rails",
+    kicker: "Rails",
     title: "Same ticker, two chains",
-    copy: "One symbol. If the netflow page still has it on more than one chain, which absolute 24h figure is larger. A tie stays a tie.",
+    copy: "Two chains, one chain, or not on the page.",
   },
   {
     href: "/cohort-sign",
     tone: "wire",
-    kicker: "The wire",
+    kicker: "Wire",
     title: "Cohort and sign",
-    copy: "The largest absolute 1-day cohort and its sign, then AGREE, DISAGREE, or UNAVAILABLE. This desk does not explain a price.",
+    copy: "Agree, disagree, flat, or unavailable.",
   },
   {
     href: "/one-poke",
     tone: "poke",
-    kicker: "The poke",
+    kicker: "Poke",
     title: "One poke vs many callers",
-    copy: "On the buy page, is one kept wallet at least half the USD, or are the callers spread out. No sell call, and no wallet table.",
+    copy: "Top buy at least 50%, or not.",
   },
   {
     href: "/gas",
     tone: "gas",
-    kicker: "The lamp",
+    kicker: "Gas",
     title: "Who is paying the gas",
-    copy: "Seven days of EVM gas USD. Does Ethereum still lead, and which chain name decides it.",
+    copy: "Ethereum still leads 7-day EVM gas, or not.",
   },
   {
     href: "/jup-dca",
     tone: "dca",
-    kicker: "The vault",
+    kicker: "Vault",
     title: "Jupiter DCA still filling",
-    copy: "A Solana mint. Still filling, closed, or none. A missing list is not a made-up vault.",
+    copy: "Still filling, closed, or none.",
   },
   {
     href: "/hl-split",
     tone: "split",
-    kicker: "The split",
+    kicker: "Split",
     title: "Hyperliquid position split",
-    copy: "Smart HL Perps against Whales on that perp book. Split, aligned, or flat. Not a spot netflow guess.",
+    copy: "Split, aligned, or flat on a perp ticker.",
   },
 ];
 
 export default function HomePage() {
   return (
     <section>
-      <p className="kicker on-wood">The room</p>
-      <h1 className="nameplate-title">Nine desks, one board</h1>
+      <p className="kicker on-wood">Room</p>
+      <h1 className="nameplate-title">Commit, then call</h1>
       <p className="room-lede">
-        The in-app agent asks these questions and then asks you to sign up. Each desk answers from
-        one Nansen call: a netflow page, a flow split, a buy page, chain gas, a Jupiter vault, or a
-        Hyperliquid book. The line under the nav is the credit counter for this server process.
+        Lock a stamp. The desk calls Nansen and scores that stamp against the response. Wrong and right
+        come from the payload.
       </p>
       <ul className="door-grid">
         {DOORS.map((door) => (

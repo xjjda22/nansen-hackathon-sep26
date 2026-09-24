@@ -8,9 +8,12 @@ export default function Page() {
   return (
     <Desk
       tone="blotter"
-      kicker="The blotter"
+      kicker="Blotter"
       title="Same names, both sides"
-      lede="One buy page for one token. The sentence is how many of those buyers also have a sold volume on that same page. Labels stay off the page. The sell page is a second button."
+      lede="Bet how the buy page comes back. The sell page is a second call."
+      route="POST /api/both-sides"
+      nansen="POST /api/v1/tgm/who-bought-sold"
+      cost="1"
     >
       <BothSidesForm />
     </Desk>

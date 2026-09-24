@@ -8,9 +8,12 @@ export default function Page() {
   return (
     <Desk
       tone="dca"
-      kicker="The vault"
+      kicker="Vault"
       title="Jupiter DCA still filling"
-      lede="One Solana mint. If any vault on the page is still Active, the stamp is STILL FILLING. All Closed is CLOSED. A missing list is NONE."
+      lede="Bet still filling, closed, or none."
+      route="POST /api/jup-dca"
+      nansen="POST /api/v1/tgm/jup-dca"
+      cost="1"
     >
       <JupDcaForm />
     </Desk>

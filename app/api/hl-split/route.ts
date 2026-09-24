@@ -1,6 +1,6 @@
 import { POSITION_COST, POSITION_PATH } from "@/lib/constants";
 import { creditView, nansenMessage, nansenPost } from "@/lib/nansen";
-import { hlSplit } from "@/lib/rules";
+import { hlSplit, publicPayload } from "@/lib/rules";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +41,12 @@ export async function POST(request: Request) {
         { status: book.status },
       );
     }
-    return NextResponse.json({ ok: true, ...hlSplit(book.body), credits: book.credits });
+    return NextResponse.json({
+      ok: true,
+      ...hlSplit(book.body),
+      credits: book.credits,
+      raw: publicPayload(book.body),
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "The position book could not be read.";
     return NextResponse.json({ ok: false, error: message, credits: creditView() }, { status: 502 });

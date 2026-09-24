@@ -12,6 +12,7 @@ import {
   isFlowChain,
   notOnYourList,
   parseNetflow,
+  publicPayload,
   readCohortRecord,
 } from "@/lib/rules";
 import { NextResponse } from "next/server";
@@ -54,6 +55,7 @@ async function board(book: string) {
     ...result,
     addingNotHolding: true,
     credits: nansen.credits,
+    raw: publicPayload(nansen.body),
   });
 }
 
@@ -137,6 +139,7 @@ async function cohort(payload: Payload, book: string) {
       tokenSymbol: card.tokenSymbol,
       sentence,
       credits: flow.credits,
+      raw: publicPayload(flow.body),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "The cohort read failed.";
@@ -157,7 +160,7 @@ async function loadBoard() {
       };
     }
     const parsed = parseNetflow(flow.body);
-    return { ok: true as const, ...parsed, credits: flow.credits };
+    return { ok: true as const, ...parsed, credits: flow.credits, body: flow.body };
   } catch (error) {
     const message = error instanceof Error ? error.message : "The board could not be read.";
     return {

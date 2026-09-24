@@ -1,6 +1,6 @@
 import { NETFLOW_BODY, NETFLOW_COST, NETFLOW_PATH } from "@/lib/constants";
 import { creditView, nansenMessage, nansenPost, netflowCacheKey } from "@/lib/nansen";
-import { parseNetflow, sectorWeather } from "@/lib/rules";
+import { parseNetflow, publicPayload, sectorWeather } from "@/lib/rules";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +22,7 @@ export async function POST() {
       stablesExcluded: true,
       nativesExcluded: true,
       credits: flow.credits,
+      raw: publicPayload(flow.body),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Sector weather could not be read.";

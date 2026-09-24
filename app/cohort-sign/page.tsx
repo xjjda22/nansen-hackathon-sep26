@@ -8,9 +8,12 @@ export default function Page() {
   return (
     <Desk
       tone="wire"
-      kicker="The wire"
+      kicker="Wire"
       title="Cohort and sign"
-      lede="The question on the agent door asks why a ticker is up. Flow intelligence has no price, so this desk does not answer that. It names the largest absolute 1-day cohort and its sign, then says whether the 5-minute sign matches."
+      lede="Bet agree, disagree, flat, or unavailable."
+      route="POST /api/cohort-sign"
+      nansen="POST /api/v1/tgm/flow-intelligence"
+      cost="1–2"
     >
       <CohortSignForm />
     </Desk>

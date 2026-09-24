@@ -1,6 +1,6 @@
 import { DCA_COST, DCA_PATH } from "@/lib/constants";
 import { creditView, nansenMessage, nansenPost } from "@/lib/nansen";
-import { classifyTokenInput, isSolanaAddress, jupDcaVerdict } from "@/lib/rules";
+import { classifyTokenInput, isSolanaAddress, jupDcaVerdict, publicPayload } from "@/lib/rules";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +42,12 @@ export async function POST(request: Request) {
         { status: dca.status },
       );
     }
-    return NextResponse.json({ ok: true, ...jupDcaVerdict(dca.body), credits: dca.credits });
+    return NextResponse.json({
+      ok: true,
+      ...jupDcaVerdict(dca.body),
+      credits: dca.credits,
+      raw: publicPayload(dca.body),
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "The DCA page could not be read.";
     return NextResponse.json({ ok: false, error: message, credits: creditView() }, { status: 502 });

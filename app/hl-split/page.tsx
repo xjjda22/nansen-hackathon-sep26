@@ -8,9 +8,12 @@ export default function Page() {
   return (
     <Desk
       tone="split"
-      kicker="The split"
+      kicker="Split"
       title="Hyperliquid position split"
-      lede="Smart HL Perps against Whales on one perp book. Opposite signs that clear the floor are SPLIT. The same sign is ALIGNED. A missing side is FLAT. Spot netflow is not this book."
+      lede="Bet split, aligned, or flat. Smart HL Perps against Whales."
+      route="POST /api/hl-split"
+      nansen="POST /api/v1/tgm/position-intelligence"
+      cost="1"
     >
       <HlSplitForm />
     </Desk>

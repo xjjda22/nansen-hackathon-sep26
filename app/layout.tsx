@@ -26,7 +26,7 @@ const wire = Special_Elite({
 
 export const metadata: Metadata = {
   title: "Off Book",
-  description: "Five questions from the Nansen board. No seed, no signature, no invented number.",
+  description: "Lock a stamp, then call Nansen. The response scores the round.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -39,15 +39,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <BrandMark />
             <div>
               <p className="nameplate-title text-[1.7rem] sm:text-3xl">Off Book</p>
-              <p className="text-sm text-[#5c3d28]">Five desks. Nansen is the index.</p>
+              <p className="text-sm text-[#5c3d28]">Nine desks. Stamp first.</p>
             </div>
           </header>
           <Nav />
           <CreditBar />
           <main className="room-main flex-1">{children}</main>
           <footer className="site-footer">
-            The server calls Nansen. This page does not scan blocks, does not ask for a seed or a
-            signature, and does not invent a figure the API did not return.
+            Server-side Nansen. No block scan. No seed. No invented figure.
           </footer>
         </div>
       </body>

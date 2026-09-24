@@ -1,18 +1,18 @@
 # Off Book
 
-Five desks that answer questions from the Nansen smart-money board. The pages are thin. Each answer comes from a server route that calls Nansen, or from a refusal that does not call. The desk does not scan blocks, does not ask for a seed or a signature, and does not invent a number the API did not return.
+Nine desks. You lock a stamp, the server calls Nansen, and the stamp is scored against that response. A wrong call is the payload, not a stored answer. The pages do not scan blocks, do not ask for a seed, and do not invent a figure the API left out.
 
-The rule set is [hackathon-edge-cases.md](../docs/hackathon-edge-cases.md). Where that note disagrees with [hackathon-ideas.md](../docs/hackathon-ideas.md), the edge-case note wins. The fourth desk is the two-chain symbol check. The agent-key gate is not built.
+The rule set is [hackathon-edge-cases.md](../docs/hackathon-edge-cases.md). Where that note disagrees with [hackathon-ideas.md](../docs/hackathon-ideas.md), the edge-case note wins.
 
 ## Run it
 
-You need Node 22 and npm. From this folder (the git root):
+You need Node 22 and npm. From this folder:
 
 ```bash
 npm install
 ```
 
-Create `.env.local` here with one line. The name is `NANSEN_API_KEY`. Put your own Nansen API key after the equals sign. The server reads that name. The key is not in this file, and `.env*` is gitignored.
+Create `.env.local` here with one line, `NANSEN_API_KEY=`, and your own key. `.env*` is gitignored.
 
 ```bash
 npm run dev -- --port 43127 --hostname 127.0.0.1
@@ -22,42 +22,36 @@ Open [http://127.0.0.1:43127](http://127.0.0.1:43127).
 
 `npm test` checks the rules and does not call Nansen.
 
-## What to click
+## A round
 
-Start with **Sector weather**. That is one netflow call, 5 credits, and it fills a two-minute cache shared with the ledger and the twin rails. While that cache is warm, those two desks spend 0.
+1. Pick the stamp on the desk.
+2. Fill the input the desk asks for. A ticker with no address does not call. An empty book does not call.
+3. Press the call button. It stays off while the request is in flight, and it stays off until a stamp is locked.
+4. The desk prints RIGHT or WRONG, the API stamp, and the figure that decided it. The score in the top line is this browser session.
 
-Then:
+Each desk shows its route, the Nansen path, and the credit cost. The response JSON is behind **Response**, collapsed.
 
-1. **Not on your list.** Leave the book empty and submit. That refuses and does not call. Type a symbol you do not hold, such as a nonsense ticker, and submit. Up to three names come back. Open a card for the 1-day cohort line. That open is a separate 1-credit call.
-2. **Same names, both sides.** A ticker with no address does not call. Paste a chain and a token address, or pick a cached board row, then read the buy page (1 credit, page of 25). The sell page is a second button. If sold volume is missing, that button stays closed.
-3. **Same ticker, two chains.** Submit one symbol. The sentence is the chains on the netflow page, or that the page did not include it.
-4. **Cohort and sign.** A symbol alone does not call. A chain and an address return the largest 1-day cohort and whether the 5-minute sign matches. That pair is 1 credit each. A flat day does not print AGREE, and the 5-minute call is skipped when the day is flat, empty, or a fresh-wallet winner.
-
-The brass line under the nav is this server process only: credits spent since the process started, and the account remaining when Nansen sends that header. It is not a campaign total. A cached click charges 0. Each result says whether that click called Nansen or came from the two-minute cache.
-
-If the account cannot cover a call, the desk shows Nansen's error. It does not fill in a sentence.
-
-## The five routes
-
-| Desk | Route |
-| --- | --- |
-| Not on your list | `POST /api/not-on-your-list` |
-| Sector weather | `POST /api/sector-weather` |
-| Same names, both sides | `POST /api/both-sides` |
-| Same ticker, two chains | `POST /api/two-chains` |
-| Cohort and sign | `POST /api/cohort-sign` |
-| One poke vs many callers | `POST /api/one-poke` |
-| Who is paying the gas | `POST /api/gas-lead` |
-| Jupiter DCA still filling | `POST /api/jup-dca` |
-| Hyperliquid position split | `POST /api/hl-split` |
-
-Opening a card on the first desk sends `action: "cohort"` to the same route. The sell page on the third desk sends `side: "SELL"` to the same route. Neither fires by itself.
-
-Netflow is 5 credits. Flow intelligence and who-bought-sold are 1 credit each. A successful response is cached for two minutes. One in-flight request is shared per cache key, and the button stays disabled while it runs.
-
-`GET /api/board` reads that cache and does not call Nansen. `GET /api/session` is the credit counter.
+A successful body is cached for two minutes. The top line is credits spent in this server process, account remaining when Nansen sends it, and the last charge. If the account cannot cover a call, the desk shows Nansen's error and does not score a number it did not receive.
 
 The desk does not call profiler labels or `agent/fast`, and it does not walk pages.
+
+## Routes
+
+| Desk | Route | Nansen | Credits |
+| --- | --- | --- | --- |
+| Ledger | `POST /api/not-on-your-list` | `POST /api/v1/smart-money/netflow` | 5 |
+| Weather | `POST /api/sector-weather` | `POST /api/v1/smart-money/netflow` | 5 |
+| Blotter | `POST /api/both-sides` | `POST /api/v1/tgm/who-bought-sold` | 1 |
+| Rails | `POST /api/two-chains` | `POST /api/v1/smart-money/netflow` | 5 |
+| Wire | `POST /api/cohort-sign` | `POST /api/v1/tgm/flow-intelligence` | 1–2 |
+| Poke | `POST /api/one-poke` | `POST /api/v1/tgm/who-bought-sold` | 1 |
+| Gas | `POST /api/gas-lead` | `POST /api/v1/chains/chain-rank` | 1 |
+| Vault | `POST /api/jup-dca` | `POST /api/v1/tgm/jup-dca` | 1 |
+| Split | `POST /api/hl-split` | `POST /api/v1/tgm/position-intelligence` | 1 |
+
+Opening a ledger card sends `action: "cohort"` to the same route (1 credit). The blotter sell page sends `side: "SELL"`. Wire spends a second credit only when the 1-day cohort has a 5-minute field. None of those fire by themselves.
+
+`GET /api/board` reads the netflow cache and does not call Nansen. `GET /api/session` is the credit counter.
 
 ## Research notes
 

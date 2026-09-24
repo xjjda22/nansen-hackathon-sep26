@@ -6,6 +6,7 @@ import {
   isQuoteSymbol,
   isTradeChain,
   parseTrades,
+  publicPayload,
   rollingDay,
   utcDay,
 } from "@/lib/rules";
@@ -109,6 +110,7 @@ export async function POST(request: Request) {
         quarter: QUARTER,
         addressOnly: !symbol,
         credits: trades.credits,
+        raw: publicPayload(trades.body),
       });
     }
     const verdict = buyerPageVerdict(parsed.rows, parsed.isLastPage);
@@ -121,6 +123,7 @@ export async function POST(request: Request) {
       addressOnly: !symbol,
       hyperliquidLegal: chain === "hyperliquid",
       credits: trades.credits,
+      raw: publicPayload(trades.body),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "The trade page could not be read.";

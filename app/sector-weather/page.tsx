@@ -8,9 +8,12 @@ export default function Page() {
   return (
     <Desk
       tone="weather"
-      kicker="The barometer"
+      kicker="Weather"
       title="Sector weather"
-      lede="Which of Nansen's sectors has the strongest positive 24h smart-money net flow, and which has the strongest negative. A token in two sectors is counted in full in both. The sums sit behind the toggle."
+      lede="Bet leaving, nothing leaving, or no weather."
+      route="POST /api/sector-weather"
+      nansen="POST /api/v1/smart-money/netflow"
+      cost="5"
     >
       <SectorWeatherForm />
     </Desk>

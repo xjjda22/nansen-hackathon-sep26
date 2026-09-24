@@ -31,12 +31,18 @@ export function Desk({
   lede,
   kicker,
   tone,
+  route,
+  nansen,
+  cost,
   children,
 }: {
   title: string;
   lede: string;
   kicker: string;
   tone: DeskTone;
+  route: string;
+  nansen: string;
+  cost: string;
   children: React.ReactNode;
 }) {
   return (
@@ -49,6 +55,12 @@ export function Desk({
         </div>
       </header>
       <p className="desk-lede">{lede}</p>
+      <p className="dev-strip">
+        <span>{route}</span>
+        <span aria-hidden="true">→</span>
+        <span>{nansen}</span>
+        <span className="dev-cost">{cost}</span>
+      </p>
       {children}
     </article>
   );

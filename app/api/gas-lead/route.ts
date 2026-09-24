@@ -1,6 +1,6 @@
 import { CHAIN_RANK_COST, CHAIN_RANK_PATH } from "@/lib/constants";
 import { creditView, nansenMessage, nansenPost } from "@/lib/nansen";
-import { gasLead, type GasRow } from "@/lib/rules";
+import { gasLead, publicPayload, type GasRow } from "@/lib/rules";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +37,7 @@ export async function POST() {
       );
     }
     const verdict = gasLead(parseRank(rank.body));
-    return NextResponse.json({ ok: true, ...verdict, credits: rank.credits });
+    return NextResponse.json({ ok: true, ...verdict, credits: rank.credits, raw: publicPayload(rank.body) });
   } catch (error) {
     const message = error instanceof Error ? error.message : "The chain rank could not be read.";
     return NextResponse.json({ ok: false, error: message, credits: creditView() }, { status: 502 });

@@ -6,6 +6,7 @@ import {
   isTradeChain,
   parseTrades,
   pokeVerdict,
+  publicPayload,
   rollingDay,
   utcDay,
 } from "@/lib/rules";
@@ -96,6 +97,7 @@ export async function POST(request: Request) {
       pageSize: BUYERS_PER_PAGE,
       addressOnly: !symbol,
       credits: trades.credits,
+      raw: publicPayload(trades.body),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "The buy page could not be read.";

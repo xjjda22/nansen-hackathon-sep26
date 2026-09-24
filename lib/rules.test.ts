@@ -15,6 +15,7 @@ import {
   notOnYourList,
   parseBook,
   pokeVerdict,
+  publicPayload,
   sameTickerTwoChains,
   sectorWeather,
   type FlowRow,
@@ -293,6 +294,8 @@ test("one poke is half the kept buy page and never reads sold volume", () => {
   );
   assert.equal(one.verdict, "ONE_POKE");
   assert.ok(one.sentence.startsWith("ONE POKE"));
+  assert.equal(one.sentence.includes("page of"), false);
+  assert.ok(one.share != null && one.share >= 0.5);
   const many = pokeVerdict(
     [
       { bought: 40 },
@@ -361,6 +364,19 @@ test("hyperliquid cohorts split, align, or stay flat without a spot fill-in", ()
   );
   assert.equal(hlSplit({ data: [] }).verdict, "FLAT");
   assert.equal(hlSplit(null).sentence.includes("spot netflow"), true);
+});
+
+test("public payload drops label fields", () => {
+  const raw = publicPayload({
+    address_label: "desk",
+    trader_label: "desk",
+    address: "abc",
+    nested: [{ note: "clean" }],
+  }) as { address: string; nested: { note: string }[] };
+  assert.equal("address_label" in (raw as object), false);
+  assert.equal("trader_label" in (raw as object), false);
+  assert.equal(raw.address, "abc");
+  assert.equal(raw.nested[0].note, "clean");
 });
 
 test("source does not contain the live key or a one-way verdict", () => {

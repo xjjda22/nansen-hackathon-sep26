@@ -2,6 +2,8 @@
 
 import { BoardPicker, type BoardRow } from "@/components/board-picker";
 import { CallNote } from "@/components/call-note";
+import { labelOf, RawJson, RoundMark, StampPicker } from "@/components/play";
+import { markRound } from "@/components/score";
 import { Status } from "@/components/status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,47 +11,71 @@ import { useDesk, type Credits } from "@/components/use-desk";
 import { FLOW_CHAINS } from "@/lib/constants";
 import { useState } from "react";
 
+const BETS = [
+  { id: "AGREE", label: "Agree" },
+  { id: "DISAGREE", label: "Disagree" },
+  { id: "FLAT", label: "Flat" },
+  { id: "UNAVAILABLE", label: "Unavailable" },
+];
+
 type SignResult = {
   line: string;
   agreement: "AGREE" | "DISAGREE" | "UNAVAILABLE" | null;
   flat: boolean;
-  noFlow: boolean;
   fiveSkipped?: string;
-  addressOnly: boolean;
   credits: Credits;
+  raw?: unknown;
 };
+
+function stampOf(result: SignResult): string {
+  if (result.agreement) return result.agreement;
+  if (result.flat) return "FLAT";
+  return "UNAVAILABLE";
+}
 
 export function CohortSignForm() {
   const { pending, error, run } = useDesk();
-  const [chain, setChain] = useState<string>("ethereum");
+  const [chain, setChain] = useState("ethereum");
   const [tokenAddress, setTokenAddress] = useState("");
   const [symbol, setSymbol] = useState("");
+  const [bet, setBet] = useState("");
   const [result, setResult] = useState<SignResult | null>(null);
 
   function pick(row: BoardRow) {
+    if (pending || result) return;
     setChain(row.chain);
     setTokenAddress(row.tokenAddress);
     setSymbol(row.tokenSymbol);
-    setResult(null);
   }
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
+    if (!bet || result) return;
     const data = await run<SignResult>("/api/cohort-sign", { chain, tokenAddress, symbol });
     if (!data) return;
+    markRound(bet === stampOf(data));
     setResult(data);
   }
 
+  function reset() {
+    setResult(null);
+    setBet("");
+  }
+
+  const reveal = result ? stampOf(result) : "";
+
   return (
     <div className="space-y-5">
-      <BoardPicker disabled={pending} onPick={pick} />
+      <BoardPicker disabled={pending || Boolean(result)} onPick={pick} />
       <form onSubmit={onSubmit} className="space-y-3">
+        <StampPicker label="Wire bet" options={BETS} value={bet} disabled={pending || Boolean(result)} onChange={setBet} />
         <label className="block text-sm font-semibold" htmlFor="flow-chain">
           Chain
         </label>
         <select
           id="flow-chain"
           value={chain}
+          disabled={pending || Boolean(result)}
           onChange={(event) => setChain(event.target.value)}
           className="field"
         >
@@ -65,6 +91,7 @@ export function CohortSignForm() {
         <Input
           id="flow-address"
           value={tokenAddress}
+          disabled={pending || Boolean(result)}
           onChange={(event) => {
             setTokenAddress(event.target.value);
             setSymbol("");
@@ -73,36 +100,28 @@ export function CohortSignForm() {
           autoComplete="off"
           spellCheck={false}
         />
-        <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-          {pending ? "Reading cohorts…" : "Read cohort and sign"}
-        </Button>
+        {result ? (
+          <Button type="button" variant="line" onClick={reset}>
+            New round
+          </Button>
+        ) : (
+          <Button type="submit" disabled={pending || !bet} className="w-full sm:w-auto">
+            {pending ? "Calling…" : "Call flow intelligence"}
+          </Button>
+        )}
       </form>
-      <p className="aside">
-        Two lines when the day has a cohort: the largest absolute non-null 1d net flow and its sign,
-        then whether that same cohort&apos;s 5-minute sign matches. Null is not zero. A symbol alone
-        makes no call. hyperliquid is not a chain here.
-        {symbol ? ` Selected symbol: ${symbol}.` : ""}
-      </p>
+      {symbol ? <p className="aside">{symbol}</p> : null}
       {error ? <Status kind="error">{error}</Status> : null}
-      {!result && !error ? (
-        <Status kind="empty">No token yet. Pick a cached row, or send a chain and an address.</Status>
-      ) : null}
-      {pending ? <Status kind="loading">One request is in flight. The button stays off until it returns.</Status> : null}
+      {!result && !error ? <Status kind="empty">Lock a stamp. A symbol alone does not call.</Status> : null}
+      {pending ? <Status kind="loading">One request is in flight.</Status> : null}
       {result ? (
         <div className="space-y-3">
+          <RoundMark hit={bet === reveal} you={labelOf(BETS, bet)} api={labelOf(BETS, reveal)} />
           <p className="wire-line">{result.line}</p>
+          <p className="stamp">{labelOf(BETS, reveal)}</p>
           <CallNote credits={result.credits} />
-          {result.agreement ? (
-            <p className="stamp">{result.agreement}</p>
-          ) : result.flat ? (
-            <p className="aside">No agreement line. A flat day does not agree.</p>
-          ) : null}
           {result.fiveSkipped ? <p className="aside">{result.fiveSkipped}</p> : null}
-          {result.addressOnly ? (
-            <p className="aside">
-              No symbol came with this address, so a known stable or native could not be refused up front.
-            </p>
-          ) : null}
+          <RawJson value={result.raw} />
         </div>
       ) : null}
     </div>

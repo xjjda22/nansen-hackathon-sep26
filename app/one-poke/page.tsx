@@ -8,9 +8,12 @@ export default function Page() {
   return (
     <Desk
       tone="poke"
-      kicker="The poke"
+      kicker="Poke"
       title="One poke vs many callers"
-      lede="One buy page. If the largest kept wallet is at least half the kept buy USD, the stamp is ONE POKE. Otherwise MANY CALLERS. The sell side is not called."
+      lede="Bet the 50% line on the buy page."
+      route="POST /api/one-poke"
+      nansen="POST /api/v1/tgm/who-bought-sold"
+      cost="1"
     >
       <OnePokeForm />
     </Desk>

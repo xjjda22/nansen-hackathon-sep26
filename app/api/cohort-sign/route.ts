@@ -6,6 +6,7 @@ import {
   isQuoteSymbol,
   judgeDay,
   judgeFive,
+  publicPayload,
   readCohortRecord,
 } from "@/lib/rules";
 import { NextResponse } from "next/server";
@@ -100,6 +101,7 @@ export async function POST(request: Request) {
         agreement: null,
         addressOnly: !symbol,
         credits: day.credits,
+        raw: publicPayload(day.body),
       });
     }
     const judged = judgeDay(dayRecord.values);
@@ -112,6 +114,7 @@ export async function POST(request: Request) {
         agreement: null,
         addressOnly: !symbol,
         credits: day.credits,
+        raw: publicPayload(day.body),
       });
     }
     if (judged.winners.every((winner) => winner.fresh)) {
@@ -124,6 +127,7 @@ export async function POST(request: Request) {
         fiveSkipped: "Fresh wallets have no 5-minute field, so the 5-minute call was not sent.",
         addressOnly: !symbol,
         credits: day.credits,
+        raw: publicPayload(day.body),
       });
     }
 
@@ -143,6 +147,7 @@ export async function POST(request: Request) {
         fiveSkipped: nansenMessage(five.body, five.status),
         addressOnly: !symbol,
         credits: combinedCredits(day.creditsUsed, five.creditsUsed, false),
+        raw: { day: publicPayload(day.body), five: publicPayload(five.body) },
       });
     }
     const fiveRecord = readCohortRecord(five.body);
@@ -155,6 +160,7 @@ export async function POST(request: Request) {
       agreement,
       addressOnly: !symbol,
       credits: combinedCredits(day.creditsUsed, five.creditsUsed, day.cached && five.cached),
+      raw: { day: publicPayload(day.body), five: publicPayload(five.body) },
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "The cohort read failed.";

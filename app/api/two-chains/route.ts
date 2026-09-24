@@ -1,6 +1,6 @@
 import { NETFLOW_BODY, NETFLOW_COST, NETFLOW_PATH } from "@/lib/constants";
 import { creditView, nansenMessage, nansenPost, netflowCacheKey } from "@/lib/nansen";
-import { parseNetflow, sameTickerTwoChains } from "@/lib/rules";
+import { parseNetflow, publicPayload, sameTickerTwoChains } from "@/lib/rules";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     }
     const parsed = parseNetflow(flow.body);
     const result = sameTickerTwoChains(parsed.rows, parsed.isLastPage, symbol);
-    return NextResponse.json({ ok: true, ...result, credits: flow.credits });
+    return NextResponse.json({ ok: true, ...result, credits: flow.credits, raw: publicPayload(flow.body) });
   } catch (error) {
     const message = error instanceof Error ? error.message : "The two-chain check could not be read.";
     return NextResponse.json({ ok: false, error: message, credits: creditView() }, { status: 502 });

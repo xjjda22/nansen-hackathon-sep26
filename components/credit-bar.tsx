@@ -1,10 +1,12 @@
 "use client";
 
 import type { Credits } from "@/components/use-desk";
+import { useScore } from "@/components/score";
 import { useEffect, useState } from "react";
 
 export function CreditBar() {
   const [credits, setCredits] = useState<Credits | null>(null);
+  const score = useScore();
 
   useEffect(() => {
     let cancelled = false;
@@ -27,23 +29,18 @@ export function CreditBar() {
     };
   }, []);
 
-  const remaining =
-    credits && credits.remaining != null
-      ? `${credits.remaining} remaining on the Nansen account`
-      : "account remaining not reported";
-
-  const last = !credits
-    ? "Waiting for the session counter."
-    : credits.spentThisSession === 0 && credits.used === 0 && !credits.cached
-      ? "No click has been charged in this process yet."
-      : credits.cached
-        ? `Last click was served from cache and charged ${credits.used}.`
-        : `Last click charged ${credits.used}.`;
+  const spent = credits ? String(credits.spentThisSession) : "…";
+  const left = credits && credits.remaining != null ? String(credits.remaining) : "—";
+  const last = !credits ? "—" : credits.cached ? "cache" : String(credits.used);
 
   return (
     <p className="plaque" aria-live="polite">
-      This server process has spent {credits ? credits.spentThisSession : "…"} credits. {remaining}. {last}{" "}
-      That figure is the session, not a campaign total.
+      <span>Spent {spent}</span>
+      <span>Left {left}</span>
+      <span>Last {last}</span>
+      <span>
+        Score {score.right}–{score.wrong}
+      </span>
     </p>
   );
 }
