@@ -5,9 +5,9 @@ import { RawJson } from "@/components/play";
 import { Status } from "@/components/status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useDesk, type Credits } from "@/components/use-desk";
-import { formatUsd, hourAgainstDay } from "@/lib/rules";
-import { useState } from "react";
+import { publishCredits, useDesk, type Credits } from "@/components/use-desk";
+import { formatUsd, hourAgainstDay, onloadRead } from "@/lib/rules";
+import { useEffect, useState } from "react";
 
 type Card = {
   chain: string;
@@ -93,6 +93,31 @@ function sideLine(label: string, side: Side, nothing: boolean): string {
   return `${label}: ${side.sector}. ${formatUsd(side.sumUsd)}. ${moved}${half}`;
 }
 
+let boardLoad: Promise<{ data: BoardResult | null; error: string | null }> | null = null;
+
+function loadBoard(): Promise<{ data: BoardResult | null; error: string | null }> {
+  if (!boardLoad) {
+    boardLoad = (async () => {
+      try {
+        const response = await fetch("/api/netflow", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ book: "", symbol: "" }),
+        });
+        const data = (await response.json()) as BoardResult & { ok?: boolean; error?: string };
+        if (data.credits) publishCredits(data.credits);
+        if (!response.ok || data.ok === false) {
+          return { data: null, error: data.error ?? "The desk could not complete that." };
+        }
+        return { data, error: null };
+      } catch {
+        return { data: null, error: "The request failed before a result came back." };
+      }
+    })();
+  }
+  return boardLoad;
+}
+
 function windowLine(row: RailRow, tied: boolean, several: boolean): string {
   const windows = `${row.chain} · 24h ${flowText(row.netFlow24hUsd)} · 1h ${flowText(row.netFlow1hUsd)} · 7d ${flowText(row.netFlow7dUsd)} · 30d ${flowText(row.netFlow30dUsd)}`;
   if (!several) return windows;
@@ -104,8 +129,22 @@ export function BoardForm() {
   const { pending, error, run } = useDesk();
   const [book, setBook] = useState("");
   const [symbol, setSymbol] = useState("");
+  const [load, setLoad] = useState<BoardResult | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [result, setResult] = useState<BoardResult | null>(null);
   const [picked, setPicked] = useState<PickRow | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadBoard().then((outcome) => {
+      if (cancelled) return;
+      setLoad(outcome.data);
+      setLoadError(outcome.error);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -115,8 +154,36 @@ export function BoardForm() {
     setResult(data);
   }
 
+  const stamps = load
+    ? onloadRead(load.rows.map((row) => ({ ...row, tokenSectors: row.sectors })))
+    : null;
+  const shownError = error ?? loadError;
+
   return (
     <div className="space-y-5">
+      {stamps ? (
+        <ul className="stamps" data-onload>
+          <li>
+            {stamps.positive} names have positive 24h flow. The book is empty, so none were subtracted.
+          </li>
+          <li>
+            {stamps.sector
+              ? `Leading sector: ${stamps.sector}. ${formatUsd(stamps.sectorSumUsd ?? 0)}.`
+              : "No leading sector on this page."}
+          </li>
+          <li>
+            {stamps.flipCount === 0
+              ? "No name flips sign between 7d and 30d."
+              : `${stamps.flipCount} names flip sign between 7d and 30d. Sharpest flip: ${stamps.sharpestSymbol}, ${stamps.sharpestTraders == null ? "traders absent" : `${stamps.sharpestTraders} traders`}.`}
+          </li>
+          <li>
+            {stamps.pair
+              ? `${stamps.pair.symbol}: ${stamps.pair.leftChain} 24h ${formatUsd(stamps.pair.leftUsd)}, ${stamps.pair.rightChain} 24h ${formatUsd(stamps.pair.rightUsd)}. ${stamps.pair.tied ? "Tied." : `Larger absolute on ${stamps.pair.leader}.`}`
+              : "This page has no pair."}
+          </li>
+        </ul>
+      ) : null}
+      {load ? <CallNote credits={load.credits} /> : null}
       <form onSubmit={onSubmit} className="space-y-3">
         <label className="block text-sm font-semibold" htmlFor="book">
           Book
@@ -141,14 +208,12 @@ export function BoardForm() {
           autoComplete="off"
           spellCheck={false}
         />
-        <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-          {pending ? "Calling…" : "Call netflow"}
+        <Button type="submit" disabled={pending || (!load && !shownError)} className="w-full sm:w-auto">
+          {pending || (!load && !shownError) ? "Calling…" : "Call netflow"}
         </Button>
       </form>
-      {error ? <Status kind="error">{error}</Status> : null}
-      {!result && !error ? (
-        <Status kind="empty">One netflow page. An empty book still returns weather and rails.</Status>
-      ) : null}
+      {shownError ? <Status kind="error">{shownError}</Status> : null}
+      {!load && !shownError ? <Status kind="loading">One request is in flight.</Status> : null}
       {pending ? <Status kind="loading">One request is in flight.</Status> : null}
       {result ? (
         <div className="answers">

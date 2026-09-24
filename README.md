@@ -24,7 +24,7 @@ Open [http://127.0.0.1:43127](http://127.0.0.1:43127).
 
 ## Board
 
-`POST /api/netflow` calls `POST /api/v1/smart-money/netflow` once (5 credits, page 1, 100 rows, 24h descending). The route, path, and cost are on the page once.
+Opening the board calls `POST /api/netflow`, which calls `POST /api/v1/smart-money/netflow` once (5 credits, page 1, 100 rows, 24h descending). The book and the rails symbol stay empty. The page prints four lines from that body: how many names have positive 24h flow, the leading sector and its sum, how many names flip sign between 7d and 30d with the trader count on the sharpest flip, and a two-chain pair when this page already has one. If it does not, the line says this page has no pair. A later click uses the same cache and does not pay again. Typing a book refines the ledger from that body. The route, path, and cost are on the page once.
 
 From that body:
 

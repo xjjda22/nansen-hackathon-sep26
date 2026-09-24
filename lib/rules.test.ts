@@ -9,6 +9,7 @@ import {
   cohortSentence,
   hourAgainstDay,
   judgeDay,
+  onloadRead,
   judgeFive,
   notOnYourList,
   parseBook,
@@ -285,6 +286,76 @@ test("flat days do not agree, null is not zero, and fresh wallets are unavailabl
     "DISAGREE",
   );
   assert.equal(judgeFive(day.winners, { smart_trader_net_flow_usd: 3 }, false), "AGREE");
+});
+
+test("onload stamps count positive flow, the leading sector, sign flips, and a rails pair", () => {
+  const rows = [
+    row({
+      tokenSymbol: "PEPE",
+      netFlow24hUsd: 10_000,
+      netFlow7dUsd: 4_000,
+      netFlow30dUsd: -9_000,
+      traderCount: 6,
+      chain: "ethereum",
+      tokenSectors: ["Memes"],
+    }),
+    row({
+      tokenSymbol: "PEPE",
+      netFlow24hUsd: 8_000,
+      netFlow7dUsd: 1_000,
+      netFlow30dUsd: 2_000,
+      traderCount: 3,
+      chain: "solana",
+      tokenAddress: "So11111111111111111111111111111111111111112",
+      tokenSectors: ["Memes"],
+    }),
+    row({
+      tokenSymbol: "DOWN",
+      netFlow24hUsd: -500,
+      netFlow7dUsd: 0,
+      netFlow30dUsd: -100,
+      tokenSectors: ["DeFi"],
+    }),
+    row({
+      tokenSymbol: "WIDE",
+      netFlow24hUsd: 2_000,
+      netFlow7dUsd: -20_000,
+      netFlow30dUsd: 50_000,
+      traderCount: 11,
+      tokenSectors: ["Culture"],
+    }),
+    row({
+      tokenSymbol: "DUST",
+      netFlow24hUsd: 10,
+      chain: "base",
+      tokenSectors: ["Memes"],
+    }),
+    row({
+      tokenSymbol: "DUST",
+      netFlow24hUsd: 12,
+      chain: "arbitrum",
+      tokenAddress: "0x" + "9".repeat(40),
+      tokenSectors: ["Memes"],
+    }),
+  ];
+  const read = onloadRead(rows);
+  assert.equal(read.positive, 5);
+  assert.equal(read.sector, "Memes");
+  assert.equal(read.sectorSumUsd, 10_000 + 8_000 + 10 + 12);
+  assert.equal(read.flipCount, 2);
+  assert.equal(read.sharpestSymbol, "WIDE");
+  assert.equal(read.sharpestTraders, 11);
+  assert.equal(read.pair?.symbol, "PEPE");
+  assert.equal(read.pair?.leftChain, "ethereum");
+  assert.equal(read.pair?.rightChain, "solana");
+  assert.equal(read.pair?.tied, false);
+
+  const alone = onloadRead([
+    row({ tokenSymbol: "SOLO", netFlow24hUsd: 100, netFlow7dUsd: null, netFlow30dUsd: 40, tokenSectors: ["Memes"] }),
+  ]);
+  assert.equal(alone.pair, null);
+  assert.equal(alone.flipCount, 0);
+  assert.equal(alone.positive, 1);
 });
 
 test("1h against 24h is match, differ, flat, or absent", () => {

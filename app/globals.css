@@ -528,6 +528,19 @@ body {
   align-items: center;
 }
 
+.stamps {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stamps li {
+  margin: 0;
+  line-height: 1.4;
+}
+
 .answers {
   display: grid;
   gap: 1rem;

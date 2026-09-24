@@ -642,6 +642,89 @@ function walkPayload(value: unknown): unknown {
   return value;
 }
 
+export type OnloadPair = {
+  symbol: string;
+  leftChain: string;
+  leftUsd: number;
+  rightChain: string;
+  rightUsd: number;
+  tied: boolean;
+  leader: string;
+};
+
+export type OnloadRead = {
+  positive: number;
+  sector: string | null;
+  sectorSumUsd: number | null;
+  flipCount: number;
+  sharpestSymbol: string | null;
+  sharpestTraders: number | null;
+  pair: OnloadPair | null;
+};
+
+/** Four stamps from one netflow page. The book is empty. No second call. */
+export function onloadRead(rows: FlowRow[]): OnloadRead {
+  const weather = sectorWeather(rows, true);
+  const flips = rows.filter((row) => signFlip(row.netFlow7dUsd, row.netFlow30dUsd));
+  let sharpest: FlowRow | null = null;
+  let widest = -1;
+  for (const row of flips) {
+    const width = Math.abs((row.netFlow7dUsd ?? 0) - (row.netFlow30dUsd ?? 0));
+    if (width > widest) {
+      widest = width;
+      sharpest = row;
+    }
+  }
+  return {
+    positive: rows.filter((row) => row.netFlow24hUsd > 0).length,
+    sector: weather.entering?.sector ?? null,
+    sectorSumUsd: weather.entering?.sumUsd ?? null,
+    flipCount: flips.length,
+    sharpestSymbol: sharpest?.tokenSymbol ?? null,
+    sharpestTraders: sharpest?.traderCount ?? null,
+    pair: railsPair(rows),
+  };
+}
+
+function signFlip(week: number | null, month: number | null): boolean {
+  if (week == null || month == null || week === 0 || month === 0) return false;
+  return week > 0 !== month > 0;
+}
+
+function railsPair(rows: FlowRow[]): OnloadPair | null {
+  const floorUsd = pageFloor(rows.map((row) => row.netFlow24hUsd));
+  const groups = new Map<string, FlowRow[]>();
+  for (const row of rows) {
+    if (Math.abs(row.netFlow24hUsd) < floorUsd) continue;
+    const key = row.tokenSymbol.toUpperCase();
+    const list = groups.get(key) ?? [];
+    list.push(row);
+    groups.set(key, list);
+  }
+  let best: FlowRow[] | null = null;
+  for (const list of groups.values()) {
+    const chains = new Set(list.map((row) => row.chain));
+    if (chains.size < 2) continue;
+    const sorted = [...list].sort((a, b) => Math.abs(b.netFlow24hUsd) - Math.abs(a.netFlow24hUsd));
+    if (!best || Math.abs(sorted[0].netFlow24hUsd) > Math.abs(best[0].netFlow24hUsd)) best = sorted;
+  }
+  if (!best) return null;
+  const left = best[0];
+  const right = best.find((row) => row.chain !== left.chain);
+  if (!right) return null;
+  const gap = Math.abs(Math.abs(left.netFlow24hUsd) - Math.abs(right.netFlow24hUsd));
+  const tied = gap < floorUsd;
+  return {
+    symbol: left.tokenSymbol,
+    leftChain: left.chain,
+    leftUsd: left.netFlow24hUsd,
+    rightChain: right.chain,
+    rightUsd: right.netFlow24hUsd,
+    tied,
+    leader: left.chain,
+  };
+}
+
 export function hourAgainstDay(
   netFlow1hUsd: number | null,
   netFlow24hUsd: number | null,
