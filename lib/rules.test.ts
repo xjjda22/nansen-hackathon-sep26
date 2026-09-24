@@ -12,6 +12,7 @@ import {
   onloadRead,
   judgeFive,
   notOnYourList,
+  tokenHalves,
   parseBook,
   publicPayload,
   sameTickerTwoChains,
@@ -356,6 +357,145 @@ test("onload stamps count positive flow, the leading sector, sign flips, and a r
   assert.equal(alone.pair, null);
   assert.equal(alone.flipCount, 0);
   assert.equal(alone.positive, 1);
+});
+
+test("absolute 24h ranks a large outflow above a small inflow", () => {
+  const halves = tokenHalves([
+    row({
+      tokenSymbol: "SMALL",
+      netFlow24hUsd: 10,
+      chain: "ethereum",
+      tokenSectors: ["DeFi"],
+      traderCount: 2,
+      tokenAgeDays: 10,
+      marketCapUsd: 100,
+      netFlow7dUsd: null,
+      netFlow30dUsd: -10,
+    }),
+    row({
+      tokenSymbol: "BIG",
+      netFlow24hUsd: -500,
+      chain: "solana",
+      tokenSectors: ["Memes", "DeFi"],
+      traderCount: 8,
+      tokenAgeDays: 4,
+      marketCapUsd: 900,
+      netFlow7dUsd: -5,
+      netFlow30dUsd: 5,
+    }),
+  ]);
+  assert.deepEqual(
+    halves.ranked.map((item) => item.tokenSymbol),
+    ["BIG", "SMALL"],
+  );
+  assert.equal(halves.shortPage, true);
+  assert.equal(halves.rest.count, 0);
+  assert.deepEqual(halves.top.sectors, ["DeFi"]);
+  assert.equal(halves.top.sectorCount, 2);
+  assert.equal(halves.top.flipCount, 1);
+  assert.equal(halves.top.medianTraders, 5);
+  assert.deepEqual(halves.lines, [
+    "This page has 2 tokens, not 100, and fewer than 50, so there is no rest.",
+  ]);
+});
+
+test("equal absolute flow keeps the page order", () => {
+  const halves = tokenHalves([
+    row({ tokenSymbol: "FIRST", netFlow24hUsd: -10 }),
+    row({ tokenSymbol: "SECOND", netFlow24hUsd: 10 }),
+  ]);
+  assert.deepEqual(
+    halves.ranked.map((item) => item.tokenSymbol),
+    ["FIRST", "SECOND"],
+  );
+});
+
+test("top 50 against a short rest uses only fields on the tokens", () => {
+  const rows: FlowRow[] = [];
+  for (let i = 0; i < 60; i += 1) {
+    rows.push(
+      row({
+        tokenSymbol: `T${String(i).padStart(2, "0")}`,
+        netFlow24hUsd: 1_000 - i,
+        chain: i < 50 ? "solana" : "ethereum",
+        tokenSectors: i < 50 ? ["Memes"] : ["DeFi"],
+        traderCount: i < 50 ? 10 : 4,
+        tokenAgeDays: i < 50 ? 8 : 80,
+        marketCapUsd: i < 50 ? 5_000 : null,
+        netFlow7dUsd: i < 50 ? -5 : 5,
+        netFlow30dUsd: 5,
+      }),
+    );
+  }
+  const halves = tokenHalves(rows);
+  assert.equal(halves.pageCount, 60);
+  assert.equal(halves.shortPage, true);
+  assert.equal(halves.top.count, 50);
+  assert.equal(halves.rest.count, 10);
+  assert.equal(halves.ranked[0].tokenSymbol, "T00");
+  assert.equal(halves.ranked[49].tokenSymbol, "T49");
+  assert.equal(halves.ranked[50].tokenSymbol, "T50");
+  assert.deepEqual(halves.top.sectors, ["Memes"]);
+  assert.equal(halves.top.sectorShare, 1);
+  assert.deepEqual(halves.rest.sectors, ["DeFi"]);
+  assert.deepEqual(halves.top.chains, ["solana"]);
+  assert.deepEqual(halves.rest.chains, ["ethereum"]);
+  assert.equal(halves.top.flipCount, 50);
+  assert.equal(halves.rest.flipCount, 0);
+  assert.equal(halves.top.flipShare, 1);
+  assert.equal(halves.rest.flipShare, 0);
+  assert.equal(halves.top.medianTraders, 10);
+  assert.equal(halves.rest.medianTraders, 4);
+  assert.equal(halves.top.medianAgeDays, 8);
+  assert.equal(halves.rest.medianAgeDays, 80);
+  assert.equal(halves.top.medianMarketCapUsd, 5_000);
+  assert.equal(halves.rest.medianMarketCapUsd, null);
+  assert.deepEqual(halves.lines, [
+    "This page has 60 tokens, not 100. Top 50 by absolute 24h net flow. The rest of this page: 10.",
+    "Top sector: Memes, 50 of 50. Rest: DeFi, 10 of 10.",
+    "Top chain: solana, 50 of 50. Rest: ethereum, 10 of 10.",
+    "7d sign differs from 30d on 50 of 50 in the top, and 0 of 10 in the rest. A zero or an absent window is not a difference.",
+    "Median trader count: 10 in the top, 4 in the rest.",
+    "Median token age: 8 days in the top, 80 days in the rest.",
+    "Median market cap: $5,000 in the top, absent in the rest.",
+  ]);
+});
+
+test("a full page can share a sector and still record a tie", () => {
+  const rows = Array.from({ length: 100 }, (_, index) =>
+    row({
+      tokenSymbol: `T${index}`,
+      netFlow24hUsd: 1_000 - index,
+      chain: "ethereum",
+      tokenSectors: ["Memes", "DeFi"],
+      traderCount: null,
+      tokenAgeDays: index < 50 ? 2 : null,
+      marketCapUsd: null,
+      netFlow7dUsd: 0,
+      netFlow30dUsd: -10,
+    }),
+  );
+  const halves = tokenHalves(rows);
+  assert.equal(halves.shortPage, false);
+  assert.equal(halves.top.count, 50);
+  assert.equal(halves.rest.count, 50);
+  assert.deepEqual(halves.top.sectors, ["DeFi", "Memes"]);
+  assert.equal(halves.top.sectorCount, 50);
+  assert.equal(halves.top.flipCount, 0);
+  assert.equal(halves.top.medianTraders, null);
+  assert.equal(halves.top.medianAgeDays, 2);
+  assert.equal(halves.rest.medianAgeDays, null);
+  assert.equal(halves.lines[0], "Top 50 tokens by absolute 24h net flow. The rest of this page: 50.");
+  assert.equal(
+    halves.lines[1],
+    "Both halves have the same dominant sector, DeFi and Memes. Top 50 of 50. Rest 50 of 50. That is not unique to the top.",
+  );
+  assert.match(halves.lines[4], /absent in the top, absent in the rest/);
+  assert.equal(
+    halves.lines[5],
+    "Median token age: 2 days in the top, absent in the rest.",
+  );
+  assert.doesNotMatch(halves.lines.join(" "), /not 100/);
 });
 
 test("1h against 24h is match, differ, flat, or absent", () => {

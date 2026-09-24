@@ -5,6 +5,7 @@ import {
   MAX_ADDRESSES_SHOWN,
   MAX_CARDS,
   MIN_TRADERS,
+  NETFLOW_PER_PAGE,
   QUARTER,
   QUOTE_SYMBOLS,
   RELATIVE_FLOOR,
@@ -740,4 +741,188 @@ export function formatUsd(value: number): string {
     currency: "USD",
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+const TOKEN_TOP = 50;
+
+export type HalfStat = {
+  count: number;
+  sectors: string[];
+  sectorCount: number;
+  sectorShare: number | null;
+  chains: string[];
+  chainCount: number;
+  chainShare: number | null;
+  flipCount: number;
+  flipShare: number | null;
+  medianTraders: number | null;
+  medianAgeDays: number | null;
+  medianMarketCapUsd: number | null;
+  tradersPresent: number;
+  agePresent: number;
+  marketCapPresent: number;
+};
+
+export type TokenHalves = {
+  ranked: FlowRow[];
+  pageCount: number;
+  shortPage: boolean;
+  top: HalfStat;
+  rest: HalfStat;
+  lines: string[];
+};
+
+/** Rank one netflow page by absolute 24h flow and compare the first 50 tokens with the rest. */
+export function tokenHalves(rows: FlowRow[]): TokenHalves {
+  const ranked = rows
+    .map((row, index) => ({ row, index }))
+    .sort((a, b) => {
+      const gap = Math.abs(b.row.netFlow24hUsd) - Math.abs(a.row.netFlow24hUsd);
+      if (gap !== 0) return gap;
+      return a.index - b.index;
+    })
+    .map((item) => item.row);
+  const cut = Math.min(TOKEN_TOP, ranked.length);
+  const top = halfStat(ranked.slice(0, cut));
+  const rest = halfStat(ranked.slice(cut));
+  return {
+    ranked,
+    pageCount: ranked.length,
+    shortPage: ranked.length < NETFLOW_PER_PAGE,
+    top,
+    rest,
+    lines: halfLines(ranked.length, top, rest),
+  };
+}
+
+function halfStat(rows: FlowRow[]): HalfStat {
+  const sectorLabels: string[] = [];
+  for (const row of rows) {
+    for (const sector of new Set(row.tokenSectors)) sectorLabels.push(sector);
+  }
+  const sector = mode(sectorLabels, rows.length);
+  const chain = mode(
+    rows.map((row) => row.chain),
+    rows.length,
+  );
+  const traders = rows.map((row) => row.traderCount).filter((value): value is number => value != null);
+  const ages = rows.map((row) => row.tokenAgeDays).filter((value): value is number => value != null);
+  const caps = rows.map((row) => row.marketCapUsd).filter((value): value is number => value != null);
+  const flipCount = rows.filter((row) => signFlip(row.netFlow7dUsd, row.netFlow30dUsd)).length;
+  return {
+    count: rows.length,
+    sectors: sector.names,
+    sectorCount: sector.count,
+    sectorShare: sector.share,
+    chains: chain.names,
+    chainCount: chain.count,
+    chainShare: chain.share,
+    flipCount,
+    flipShare: rows.length === 0 ? null : flipCount / rows.length,
+    medianTraders: median(traders),
+    medianAgeDays: median(ages),
+    medianMarketCapUsd: median(caps),
+    tradersPresent: traders.length,
+    agePresent: ages.length,
+    marketCapPresent: caps.length,
+  };
+}
+
+function mode(labels: string[], total: number): { names: string[]; count: number; share: number | null } {
+  if (total === 0 || labels.length === 0) return { names: [], count: 0, share: null };
+  const counts = new Map<string, number>();
+  for (const label of labels) counts.set(label, (counts.get(label) ?? 0) + 1);
+  let best = 0;
+  for (const count of counts.values()) if (count > best) best = count;
+  const names = [...counts.keys()].filter((name) => counts.get(name) === best).sort();
+  return { names, count: best, share: best / total };
+}
+
+function median(values: number[]): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 1) return sorted[mid];
+  return (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+function halfLines(pageCount: number, top: HalfStat, rest: HalfStat): string[] {
+  if (pageCount === 0) return ["This page has no tokens."];
+  if (rest.count === 0) {
+    return [
+      `This page has ${pageCount} tokens, not 100, and fewer than 50, so there is no rest.`,
+    ];
+  }
+  const size = pageCount < NETFLOW_PER_PAGE
+    ? `This page has ${pageCount} tokens, not 100. Top ${top.count} by absolute 24h net flow. The rest of this page: ${rest.count}.`
+    : `Top ${top.count} tokens by absolute 24h net flow. The rest of this page: ${pageCount - top.count}.`;
+  return [
+    size,
+    groupLine("sector", top.sectors, top.sectorCount, top.count, rest.sectors, rest.sectorCount, rest.count),
+    groupLine("chain", top.chains, top.chainCount, top.count, rest.chains, rest.chainCount, rest.count),
+    `7d sign differs from 30d on ${top.flipCount} of ${top.count} in the top, and ${rest.flipCount} of ${rest.count} in the rest. A zero or an absent window is not a difference.`,
+    medianLine("Median trader count", top.medianTraders, top.tradersPresent, top.count, rest.medianTraders, rest.tradersPresent, rest.count, "count"),
+    medianLine("Median token age", top.medianAgeDays, top.agePresent, top.count, rest.medianAgeDays, rest.agePresent, rest.count, "days"),
+    medianLine(
+      "Median market cap",
+      top.medianMarketCapUsd,
+      top.marketCapPresent,
+      top.count,
+      rest.medianMarketCapUsd,
+      rest.marketCapPresent,
+      rest.count,
+      "usd",
+    ),
+  ];
+}
+
+function groupLine(
+  kind: "sector" | "chain",
+  topNames: string[],
+  topCount: number,
+  topTotal: number,
+  restNames: string[],
+  restCount: number,
+  restTotal: number,
+): string {
+  const topText = groupText(topNames, topCount, topTotal);
+  const restText = groupText(restNames, restCount, restTotal);
+  const same = topNames.join("\0") === restNames.join("\0") && topNames.length > 0;
+  if (same) {
+    const label = topNames.length > 1 ? topNames.join(" and ") : topNames[0];
+    return `Both halves have the same dominant ${kind}, ${label}. Top ${topCount} of ${topTotal}. Rest ${restCount} of ${restTotal}. That is not unique to the top.`;
+  }
+  return `Top ${kind}: ${topText} Rest: ${restText}`;
+}
+
+function groupText(names: string[], count: number, total: number): string {
+  if (names.length === 0) return "absent.";
+  const each = names.length > 1 ? "each " : "";
+  return `${names.join(", ")}, ${each}${count} of ${total}.`;
+}
+
+function medianLine(
+  label: string,
+  topValue: number | null,
+  topPresent: number,
+  topTotal: number,
+  restValue: number | null,
+  restPresent: number,
+  restTotal: number,
+  kind: "count" | "days" | "usd",
+): string {
+  return `${label}: ${medianText(topValue, topPresent, topTotal, kind)} in the top, ${medianText(restValue, restPresent, restTotal, kind)} in the rest.`;
+}
+
+function medianText(value: number | null, present: number, total: number, kind: "count" | "days" | "usd"): string {
+  if (present === 0 || value == null) return "absent";
+  const body = kind === "usd" ? formatUsd(value) : kind === "days" ? `${plainNumber(value)} days` : plainNumber(value);
+  if (present < total) return `${body} (${present} of ${total} present)`;
+  return body;
+}
+
+function plainNumber(value: number): string {
+  if (Number.isInteger(value)) return String(value);
+  const nearest = Math.round(value * 10) / 10;
+  return Number.isInteger(nearest) ? nearest.toFixed(1) : String(nearest);
 }

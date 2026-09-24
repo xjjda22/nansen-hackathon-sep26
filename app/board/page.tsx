@@ -10,7 +10,7 @@ export default function Page() {
       tone="ledger"
       kicker="Board"
       title="One netflow page"
-      lede="Ledger, weather, rails, and a picked row. All from this body."
+      lede="Tokens on this page, ranked by absolute 24h flow. The top 50 against the rest. Same body."
       route="POST /api/netflow"
       nansen="POST /api/v1/smart-money/netflow"
       cost="5"
