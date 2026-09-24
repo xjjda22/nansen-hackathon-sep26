@@ -3,11 +3,8 @@ import Link from "next/link";
 
 const LINKS = [
   ["/", "Room"],
-  ["/not-on-your-list", "Ledger"],
-  ["/sector-weather", "Weather"],
+  ["/board", "Board"],
   ["/both-sides", "Blotter"],
-  ["/two-chains", "Rails"],
-  ["/cohort-sign", "Wire"],
 ] as const;
 
 export function Nav() {

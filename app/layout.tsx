@@ -26,7 +26,7 @@ const wire = Special_Elite({
 
 export const metadata: Metadata = {
   title: "Off Book",
-  description: "Lock a stamp, then call Nansen. The response scores the round.",
+  description: "One Nansen call per screen. The lines come from that body.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <BrandMark />
             <div>
               <p className="nameplate-title text-[1.7rem] sm:text-3xl">Off Book</p>
-              <p className="text-sm text-[#5c3d28]">Five desks. Stamp first.</p>
+              <p className="text-sm text-[#5c3d28]">Two calls. One body each.</p>
             </div>
           </header>
           <Nav />

@@ -7,6 +7,7 @@ import {
   buyerPageVerdict,
   classifyTokenInput,
   cohortSentence,
+  hourAgainstDay,
   judgeDay,
   judgeFive,
   notOnYourList,
@@ -23,14 +24,17 @@ function row(partial: Partial<FlowRow> & Pick<FlowRow, "tokenSymbol" | "netFlow2
     tokenAddress: partial.tokenAddress ?? `0x${partial.tokenSymbol.padEnd(40, "a").slice(0, 40)}`,
     tokenSymbol: partial.tokenSymbol,
     netFlow24hUsd: partial.netFlow24hUsd,
+    netFlow1hUsd: partial.netFlow1hUsd === undefined ? null : partial.netFlow1hUsd,
     tokenSectors: partial.tokenSectors ?? ["Memes"],
-    traderCount: partial.traderCount ?? 4,
+    traderCount: partial.traderCount === undefined ? 4 : partial.traderCount,
   };
 }
 
-test("empty book makes no call", () => {
+test("empty book skips the ledger line", () => {
   const result = notOnYourList([row({ tokenSymbol: "PEPE", netFlow24hUsd: 100 })], true, "   ");
   assert.equal(result.call, false);
+  assert.equal(result.skipped, true);
+  assert.match(result.line, /Empty book/);
 });
 
 test("bad strings are ignored and still make no call when nothing remains", () => {
@@ -277,6 +281,14 @@ test("flat days do not agree, null is not zero, and fresh wallets are unavailabl
     "DISAGREE",
   );
   assert.equal(judgeFive(day.winners, { smart_trader_net_flow_usd: 3 }, false), "AGREE");
+});
+
+test("1h sign against 24h is match, differ, or missing", () => {
+  assert.equal(hourAgainstDay(10, 20), "match");
+  assert.equal(hourAgainstDay(-4, 20), "differ");
+  assert.equal(hourAgainstDay(null, 20), "missing");
+  assert.equal(hourAgainstDay(0, 20), "missing");
+  assert.equal(hourAgainstDay(10, 0), "missing");
 });
 
 test("public payload drops label fields", () => {

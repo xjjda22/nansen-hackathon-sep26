@@ -1,12 +1,10 @@
 "use client";
 
-import { useScore } from "@/components/score";
 import type { Credits } from "@/components/use-desk";
 import { useEffect, useState } from "react";
 
 export function CreditBar() {
   const [credits, setCredits] = useState<Credits | null>(null);
-  const score = useScore();
 
   useEffect(() => {
     let cancelled = false;
@@ -46,10 +44,6 @@ export function CreditBar() {
       <span>Left {left}</span>
       <span aria-hidden="true">·</span>
       <span>{last}</span>
-      <span aria-hidden="true">·</span>
-      <span>
-        {score.right} right · {score.wrong} wrong
-      </span>
     </p>
   );
 }

@@ -35,7 +35,13 @@ export async function POST(request: Request) {
   const chain = typeof payload.chain === "string" ? payload.chain.trim() : "";
   const rawAddress = typeof payload.tokenAddress === "string" ? payload.tokenAddress : "";
   const symbol = typeof payload.symbol === "string" ? payload.symbol.trim() : "";
-  const side = payload.side === "SELL" ? "SELL" : "BUY";
+  if (payload.side === "SELL") {
+    return NextResponse.json(
+      { ok: false, error: "The sell page is not on this call.", credits: noCallCredits() },
+      { status: 400 },
+    );
+  }
+  const side = "BUY";
 
   if (!chain || !rawAddress.trim()) {
     return NextResponse.json(
@@ -88,12 +94,7 @@ export async function POST(request: Request) {
         buy_or_sell: side,
         date: rollingDay(),
         pagination: { page: 1, per_page: BUYERS_PER_PAGE },
-        order_by: [
-          {
-            field: side === "SELL" ? "sold_volume_usd" : "bought_volume_usd",
-            direction: "DESC",
-          },
-        ],
+        order_by: [{ field: "bought_volume_usd", direction: "DESC" }],
       },
       TRADES_COST,
       `trades:v2:${chain}:${addressKey}:${side}:${day}`,
@@ -105,20 +106,6 @@ export async function POST(request: Request) {
       );
     }
     const parsed = parseTrades(trades.body);
-    if (side === "SELL") {
-      return NextResponse.json({
-        ok: true,
-        side,
-        sentence: `Sell page, ${BUYERS_PER_PAGE} requested. ${parsed.rows.length} addresses came back. This does not change the buyer-page count, and it is not a one-way claim.`,
-        addresses: parsed.rows.slice(0, 3).map((row) => row.address),
-        rowCount: parsed.rows.length,
-        pageCut: !parsed.isLastPage,
-        quarter: QUARTER,
-        addressOnly: !symbol,
-        credits: trades.credits,
-        raw: publicPayload(trades.body),
-      });
-    }
     const verdict = buyerPageVerdict(parsed.rows, parsed.isLastPage);
     return NextResponse.json({
       ok: true,

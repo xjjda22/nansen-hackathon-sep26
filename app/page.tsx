@@ -9,39 +9,18 @@ const DOORS: {
   copy: string;
 }[] = [
   {
-    href: "/not-on-your-list",
+    href: "/board",
     tone: "ledger",
-    kicker: "Ledger",
-    title: "Not on your list",
-    copy: "A name off your book, or none. Empty book does not call.",
-  },
-  {
-    href: "/sector-weather",
-    tone: "weather",
-    kicker: "Weather",
-    title: "Sector weather",
-    copy: "Leaving, nothing leaving, or no weather.",
+    kicker: "Board",
+    title: "One netflow page",
+    copy: "Ledger, weather, rails, and a picked row.",
   },
   {
     href: "/both-sides",
     tone: "blotter",
     kicker: "Blotter",
-    title: "Same names, both sides",
-    copy: "Also sold, none, no trades, or volume absent.",
-  },
-  {
-    href: "/two-chains",
-    tone: "rails",
-    kicker: "Rails",
-    title: "Same ticker, two chains",
-    copy: "Two chains, one chain, or not on the page.",
-  },
-  {
-    href: "/cohort-sign",
-    tone: "wire",
-    kicker: "Wire",
-    title: "Cohort and sign",
-    copy: "Agree, disagree, flat, or unavailable.",
+    title: "Buy page",
+    copy: "Also sold, sold volume absent, or no trades.",
   },
 ];
 
@@ -49,11 +28,8 @@ export default function HomePage() {
   return (
     <section>
       <p className="kicker on-wood">Room</p>
-      <h1 className="nameplate-title">Commit, then call</h1>
-      <p className="room-lede">
-        Lock a stamp. The desk calls Nansen and scores that stamp against the response. Wrong and right
-        come from the payload.
-      </p>
+      <h1 className="nameplate-title">One call, then the lines</h1>
+      <p className="room-lede">Two screens. Each button is one Nansen call. The lines are that body.</p>
       <ul className="door-grid">
         {DOORS.map((door) => (
           <li key={door.href} className={`door-slot door-slot-${door.tone}`}>

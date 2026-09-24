@@ -1,6 +1,6 @@
 # Off Book
 
-Five desks. You lock a stamp, the server calls Nansen, and the stamp is scored against that response. A wrong call is the payload, not a stored answer. The pages do not scan blocks, do not ask for a seed, and do not invent a figure the API left out.
+Two screens. Each button is one Nansen call. The lines on that screen are read from that body. A figure the payload does not contain is not shown. The pages do not scan blocks, do not ask for a seed, and do not invent a number.
 
 The rule set is [hackathon-edge-cases.md](../docs/hackathon-edge-cases.md). Where that note disagrees with [hackathon-ideas.md](../docs/hackathon-ideas.md), the edge-case note wins.
 
@@ -22,34 +22,36 @@ Open [http://127.0.0.1:43127](http://127.0.0.1:43127).
 
 `npm test` checks the rules and does not call Nansen.
 
-## A round
+## Board
 
-1. Pick the stamp on the desk.
-2. Fill the input the desk asks for. A ticker with no address does not call. An empty book does not call.
-3. Press the call button. It stays off while the request is in flight, and it stays off until a stamp is locked.
-4. The desk prints RIGHT or WRONG, the API stamp, and the figure that decided it. If the payload has no stamp you could lock (no trades, volume absent, no flow), the round is NO SCORE. A cached replay shows the stamp and does not add a point. The score on the top line is this browser session: N right · N wrong.
+`POST /api/netflow` calls `POST /api/v1/smart-money/netflow` once (5 credits, page 1, 100 rows, 24h descending). The route, path, and cost are on the page once.
 
-Each desk shows its route, the Nansen path, and the credit cost. The response JSON is behind **Response**, collapsed.
+From that body:
 
-A successful body is cached for two minutes. The top line is credits spent in this server process, account remaining when Nansen sends it, and this click: last charge, cache, or no call. A refusal does not repeat the previous charge. The blotter buy page is ordered by bought USD. If the account cannot cover a call, the desk shows Nansen's error and does not invent a figure.
+- Ledger: up to three positive 24h names not on the typed book. An empty book skips this line and says so. Weather and rails still run.
+- Weather: which sector 24h flow is entering, and which it is leaving, from `token_sectors`. A token in two sectors is counted in both. All positive: nothing leaving.
+- Rails: for the typed symbol, which chain has the larger absolute 24h figure. A tie stays a tie. One chain says so. No symbol skips this line.
+- A picked row, with no extra call: 1h sign against 24h sign (match, differ, or missing), that row’s sector, and `trader_count`.
 
-The audit of this build is [devils-advocate.md](../docs/devils-advocate.md).
+Page 2 is not fetched. If `is_last_page` is false, the page says so.
 
-The desk does not call profiler labels or `agent/fast`, and it does not walk pages.
+## Blotter
 
-## Routes
+`POST /api/both-sides` calls `POST /api/v1/tgm/who-bought-sold` once, BUY, ordered by bought USD, 25 rows. It prints how many of that page also sold, or sold volume absent, or no trades, and a page cut when `is_last_page` is false. There is no sell call.
 
-| Desk | Route | Nansen | Credits |
-| --- | --- | --- | --- |
-| Ledger | `POST /api/not-on-your-list` | `POST /api/v1/smart-money/netflow` | 5 |
-| Weather | `POST /api/sector-weather` | `POST /api/v1/smart-money/netflow` | 5 |
-| Blotter | `POST /api/both-sides` | `POST /api/v1/tgm/who-bought-sold` | 1 |
-| Rails | `POST /api/two-chains` | `POST /api/v1/smart-money/netflow` | 5 |
-| Wire | `POST /api/cohort-sign` | `POST /api/v1/tgm/flow-intelligence` | 1–2 |
+A ticker with no address does not call. A known quote symbol is refused before the call. An address typed alone is not checked against that list.
 
-Opening a ledger card sends `action: "cohort"` to the same route (1 credit). The blotter sell page sends `side: "SELL"`. Wire spends a second credit only when the 1-day cohort has a 5-minute field. None of those fire by themselves.
+## Credits
+
+A successful body is cached for two minutes. The top line is credits spent in this server process, account remaining when Nansen sends it, and this click: last charge, cache, or no call. A refusal does not repeat the previous charge. If the account cannot cover a call, the page shows Nansen's error.
+
+The response JSON is behind **Response**, collapsed.
+
+The pages do not call profiler labels, `agent/fast`, flow intelligence, dex trades, holdings, or a second netflow.
 
 `GET /api/board` reads the netflow cache and does not call Nansen. `GET /api/session` is the credit counter.
+
+The audit of an earlier build is [devils-advocate.md](../docs/devils-advocate.md).
 
 ## Research notes
 

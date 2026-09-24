@@ -22,8 +22,9 @@ export type FlowRow = {
   tokenAddress: string;
   tokenSymbol: string;
   netFlow24hUsd: number;
+  netFlow1hUsd: number | null;
   tokenSectors: string[];
-  traderCount: number;
+  traderCount: number | null;
 };
 
 export type BookEntry =
@@ -95,8 +96,9 @@ export function parseNetflow(body: unknown): { rows: FlowRow[]; isLastPage: bool
       tokenAddress: row.token_address,
       tokenSymbol: row.token_symbol,
       netFlow24hUsd: row.net_flow_24h_usd,
+      netFlow1hUsd: typeof row.net_flow_1h_usd === "number" ? row.net_flow_1h_usd : null,
       tokenSectors: sectors,
-      traderCount: typeof row.trader_count === "number" ? row.trader_count : 0,
+      traderCount: typeof row.trader_count === "number" ? row.trader_count : null,
     });
   }
   if (record.data.length > 0 && rows.length === 0) {
@@ -135,10 +137,11 @@ export function notOnYourList(rows: FlowRow[], isLastPage: boolean, bookInput: s
   if (!bookHasHolding(entries)) {
     return {
       call: false as const,
-      error:
+      skipped: true as const,
+      line:
         ignoredBad.length > 0
-          ? "Those strings were ignored. Type at least one symbol. An empty book makes no call."
-          : "Type at least one symbol. An empty book makes no call.",
+          ? "Ignored strings. Empty book. Ledger skipped."
+          : "Empty book. Ledger skipped.",
       ignored: ignoredBad,
     };
   }
@@ -167,7 +170,7 @@ export function notOnYourList(rows: FlowRow[], isLastPage: boolean, bookInput: s
   const survivors = rows
     .filter((row) => row.netFlow24hUsd > 0)
     .filter((row) => Math.abs(row.netFlow24hUsd) >= floorUsd)
-    .filter((row) => row.traderCount >= MIN_TRADERS)
+    .filter((row): row is FlowRow & { traderCount: number } => row.traderCount != null && row.traderCount >= MIN_TRADERS)
     .filter((row) => !rowMatchesHolding(row, entries))
     .sort((a, b) => b.netFlow24hUsd - a.netFlow24hUsd);
 
@@ -182,6 +185,8 @@ export function notOnYourList(rows: FlowRow[], isLastPage: boolean, bookInput: s
 
   return {
     call: true as const,
+    skipped: false as const,
+    line: cards.length === 0 ? "No name off this book." : `${cards.length} off the book.`,
     ignored: [...ignoredBad, ...ignoredAddresses],
     unmatchedSymbols,
     floorUsd,
@@ -313,14 +318,12 @@ export function sectorWeather(rows: FlowRow[], isLastPage: boolean) {
   } else if (noWeather) {
     sentence = `No sector weather. The strongest positive sector sum and the strongest negative sector sum are both under 1% of the largest absolute 24h flow on this page (${formatFloor(floorUsd)}). ${unmapped} rows had no sector.`;
   } else {
-    const parts = [
-      "Sector sums overlap. A token listed in more than one sector is added in full to each.",
-    ];
-    if (entering) parts.push(sideSentence(entering, "positive"));
+    const parts = ["Overlap."];
+    if (entering) parts.push(entering.oneToken ? sideSentence(entering, "positive") : `Entering ${entering.sector}.`);
     else parts.push("No positive sector sum clears the floor.");
-    if (leaving) parts.push(sideSentence(leaving, "negative"));
+    if (leaving) parts.push(leaving.oneToken ? sideSentence(leaving, "negative") : `Leaving ${leaving.sector}.`);
     if (nothingLeaving) parts.push("Nothing is leaving.");
-    parts.push(`${unmapped} rows had no sector and sit in neither side.`);
+    parts.push(`${unmapped} rows had no sector.`);
     sentence = parts.join(" ");
   }
 
@@ -399,7 +402,7 @@ export function buyerPageVerdict(rows: TradeRow[], isLastPage: boolean) {
   if (!anySold) {
     return {
       verdict: "SOLD_VOLUME_ABSENT" as const,
-      sentence: "SOLD VOLUME ABSENT. Sold volume is missing on this page, so there is no one-way claim.",
+      sentence: "SOLD VOLUME ABSENT.",
       addresses: [] as string[],
       counted: 0,
       floorUsd: 0,
@@ -623,6 +626,21 @@ function walkPayload(value: unknown): unknown {
     return out;
   }
   return value;
+}
+
+export function hourAgainstDay(
+  netFlow1hUsd: number | null,
+  netFlow24hUsd: number,
+): "match" | "differ" | "missing" {
+  const hour = flowSign(netFlow1hUsd);
+  const day = flowSign(netFlow24hUsd);
+  if (hour === "missing" || day === "missing") return "missing";
+  return hour === day ? "match" : "differ";
+}
+
+function flowSign(value: number | null): "pos" | "neg" | "missing" {
+  if (value == null || value === 0) return "missing";
+  return value > 0 ? "pos" : "neg";
 }
 
 export function formatUsd(value: number): string {
