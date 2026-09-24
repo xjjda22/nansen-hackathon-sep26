@@ -28,6 +28,9 @@ type RailRow = {
   chain: string;
   tokenSymbol: string;
   netFlow24hUsd: number;
+  netFlow1hUsd: number | null;
+  netFlow7dUsd: number | null;
+  netFlow30dUsd: number | null;
   larger: boolean;
 };
 
@@ -35,9 +38,13 @@ type PickRow = {
   chain: string;
   tokenAddress: string;
   tokenSymbol: string;
-  netFlow24hUsd: number;
   netFlow1hUsd: number | null;
+  netFlow24hUsd: number;
+  netFlow7dUsd: number | null;
+  netFlow30dUsd: number | null;
   traderCount: number | null;
+  tokenAgeDays: number | null;
+  marketCapUsd: number | null;
   sectors: string[];
 };
 
@@ -69,12 +76,28 @@ type BoardResult = {
   raw?: unknown;
 };
 
+function flowText(value: number | null): string {
+  if (value == null) return "absent";
+  return formatUsd(value);
+}
+
+function countText(value: number | null): string {
+  if (value == null) return "absent";
+  return String(value);
+}
+
 function sideLine(label: string, side: Side, nothing: boolean): string {
   if (!side) return nothing ? `${label}: nothing leaving.` : `${label}: none.`;
-  if (side.oneToken) {
-    return `${label}: ${side.sector} is not a sector move. ${side.topSymbol} on ${side.topChain} is more than half.`;
-  }
-  return `${label}: ${side.sector}. ${formatUsd(side.sumUsd)}.`;
+  const moved = `${side.topSymbol} on ${side.topChain} moved it most.`;
+  const half = side.oneToken ? " More than half of the sum." : "";
+  return `${label}: ${side.sector}. ${formatUsd(side.sumUsd)}. ${moved}${half}`;
+}
+
+function windowLine(row: RailRow, tied: boolean, several: boolean): string {
+  const windows = `${row.chain} · 24h ${flowText(row.netFlow24hUsd)} · 1h ${flowText(row.netFlow1hUsd)} · 7d ${flowText(row.netFlow7dUsd)} · 30d ${flowText(row.netFlow30dUsd)}`;
+  if (!several) return windows;
+  const mark = tied ? "tie" : row.larger ? "larger 24h" : "smaller 24h";
+  return `${windows} · ${mark}`;
 }
 
 export function BoardForm() {
@@ -137,7 +160,7 @@ export function BoardForm() {
               <ul>
                 {result.ledger.cards.map((card) => (
                   <li key={`${card.chain}:${card.tokenAddress}`}>
-                    {card.tokenSymbol} · {card.chain} · {formatUsd(card.netFlow24hUsd)}
+                    {card.tokenSymbol} · {card.chain} · 24h {formatUsd(card.netFlow24hUsd)}
                   </li>
                 ))}
               </ul>
@@ -166,16 +189,46 @@ export function BoardForm() {
               <ul>
                 {result.rails.rows.map((row) => (
                   <li key={`${row.chain}:${row.tokenSymbol}`}>
-                    {row.chain} · {formatUsd(row.netFlow24hUsd)}
-                    {result.rails.tied ? " · tie" : row.larger ? " · larger" : ""}
+                    {windowLine(row, result.rails.tied, result.rails.rows.length > 1)}
                   </li>
                 ))}
               </ul>
             ) : null}
           </section>
+          <CallNote credits={result.credits} />
           <section>
             <h2>Row</h2>
             <p>Pick a row from this page. No extra call.</p>
+            {picked ? (
+              <div className="token-read" data-token-read>
+                <dl className="facts">
+                  <dt>Symbol</dt>
+                  <dd>{picked.tokenSymbol}</dd>
+                  <dt>Chain</dt>
+                  <dd>{picked.chain}</dd>
+                  <dt>Address</dt>
+                  <dd>{picked.tokenAddress}</dd>
+                  <dt>1h</dt>
+                  <dd>{flowText(picked.netFlow1hUsd)}</dd>
+                  <dt>24h</dt>
+                  <dd>{flowText(picked.netFlow24hUsd)}</dd>
+                  <dt>7d</dt>
+                  <dd>{flowText(picked.netFlow7dUsd)}</dd>
+                  <dt>30d</dt>
+                  <dd>{flowText(picked.netFlow30dUsd)}</dd>
+                  <dt>1h vs 24h</dt>
+                  <dd>{hourAgainstDay(picked.netFlow1hUsd, picked.netFlow24hUsd)}</dd>
+                  <dt>Sectors</dt>
+                  <dd>{picked.sectors.length > 0 ? picked.sectors.join(", ") : "absent"}</dd>
+                  <dt>Traders</dt>
+                  <dd>{countText(picked.traderCount)}</dd>
+                  <dt>Age</dt>
+                  <dd>{picked.tokenAgeDays == null ? "absent" : `${picked.tokenAgeDays} days`}</dd>
+                  <dt>Market cap</dt>
+                  <dd>{flowText(picked.marketCapUsd)}</dd>
+                </dl>
+              </div>
+            ) : null}
             <ul className="row-list">
               {result.rows.map((row) => {
                 const key = `${row.chain}:${row.tokenAddress}`;
@@ -187,21 +240,13 @@ export function BoardForm() {
                       className={active ? "row-pick is-on" : "row-pick"}
                       onClick={() => setPicked(row)}
                     >
-                      {row.tokenSymbol} · {row.chain} · {formatUsd(row.netFlow24hUsd)}
+                      {row.tokenSymbol} · {row.chain} · 24h {formatUsd(row.netFlow24hUsd)}
                     </button>
                   </li>
                 );
               })}
             </ul>
-            {picked ? (
-              <div className="token-read" data-token-read>
-                <p>1h vs 24h: {hourAgainstDay(picked.netFlow1hUsd, picked.netFlow24hUsd)}.</p>
-                <p>Sector: {picked.sectors.length > 0 ? picked.sectors.join(", ") : "none"}.</p>
-                <p>Traders: {picked.traderCount == null ? "missing" : picked.traderCount}.</p>
-              </div>
-            ) : null}
           </section>
-          <CallNote credits={result.credits} />
           <RawJson value={result.raw} />
         </div>
       ) : null}

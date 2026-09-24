@@ -29,9 +29,9 @@ Open [http://127.0.0.1:43127](http://127.0.0.1:43127).
 From that body:
 
 - Ledger: up to three positive 24h names not on the typed book. An empty book skips this line and says so. Weather and rails still run.
-- Weather: which sector 24h flow is entering, and which it is leaving, from `token_sectors`. A token in two sectors is counted in both. All positive: nothing leaving.
-- Rails: for the typed symbol, which chain has the larger absolute 24h figure. A tie stays a tie. One chain says so. No symbol skips this line.
-- A picked row, with no extra call: 1h sign against 24h sign (match, differ, or missing), that row’s sector, and `trader_count`.
+- Weather: which sector 24h flow is entering, and which it is leaving, from `token_sectors`, with the dollar sum and the token that moved that sector the most. A token in two sectors is counted in both. All positive: nothing leaving.
+- Rails: for the typed symbol, the chain, the 24h figure, and the 1h, 7d, and 30d figures on this page. A tie stays a tie. One chain says so. No symbol skips this line.
+- A picked row, with no extra call: symbol, chain, address, 1h, 24h, 7d, and 30d, whether 1h and 24h match, differ, are flat, or are absent, every sector, trader count, token age, and market cap when that field is present. A null field is absent. A numeric 0 stays 0.
 
 Page 2 is not fetched. If `is_last_page` is false, the page says so.
 

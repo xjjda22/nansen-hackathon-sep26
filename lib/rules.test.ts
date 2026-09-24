@@ -25,8 +25,12 @@ function row(partial: Partial<FlowRow> & Pick<FlowRow, "tokenSymbol" | "netFlow2
     tokenSymbol: partial.tokenSymbol,
     netFlow24hUsd: partial.netFlow24hUsd,
     netFlow1hUsd: partial.netFlow1hUsd === undefined ? null : partial.netFlow1hUsd,
+    netFlow7dUsd: partial.netFlow7dUsd === undefined ? null : partial.netFlow7dUsd,
+    netFlow30dUsd: partial.netFlow30dUsd === undefined ? null : partial.netFlow30dUsd,
     tokenSectors: partial.tokenSectors ?? ["Memes"],
     traderCount: partial.traderCount === undefined ? 4 : partial.traderCount,
+    tokenAgeDays: partial.tokenAgeDays === undefined ? null : partial.tokenAgeDays,
+    marketCapUsd: partial.marketCapUsd === undefined ? null : partial.marketCapUsd,
   };
 }
 
@@ -283,12 +287,15 @@ test("flat days do not agree, null is not zero, and fresh wallets are unavailabl
   assert.equal(judgeFive(day.winners, { smart_trader_net_flow_usd: 3 }, false), "AGREE");
 });
 
-test("1h sign against 24h is match, differ, or missing", () => {
+test("1h against 24h is match, differ, flat, or absent", () => {
   assert.equal(hourAgainstDay(10, 20), "match");
+  assert.equal(hourAgainstDay(-4, -8), "match");
   assert.equal(hourAgainstDay(-4, 20), "differ");
-  assert.equal(hourAgainstDay(null, 20), "missing");
-  assert.equal(hourAgainstDay(0, 20), "missing");
-  assert.equal(hourAgainstDay(10, 0), "missing");
+  assert.equal(hourAgainstDay(null, 20), "absent");
+  assert.equal(hourAgainstDay(10, null), "absent");
+  assert.equal(hourAgainstDay(0, 20), "flat");
+  assert.equal(hourAgainstDay(10, 0), "flat");
+  assert.equal(hourAgainstDay(0, 0), "flat");
 });
 
 test("public payload drops label fields", () => {

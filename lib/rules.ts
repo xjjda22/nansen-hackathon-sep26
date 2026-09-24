@@ -23,8 +23,12 @@ export type FlowRow = {
   tokenSymbol: string;
   netFlow24hUsd: number;
   netFlow1hUsd: number | null;
+  netFlow7dUsd: number | null;
+  netFlow30dUsd: number | null;
   tokenSectors: string[];
   traderCount: number | null;
+  tokenAgeDays: number | null;
+  marketCapUsd: number | null;
 };
 
 export type BookEntry =
@@ -96,15 +100,23 @@ export function parseNetflow(body: unknown): { rows: FlowRow[]; isLastPage: bool
       tokenAddress: row.token_address,
       tokenSymbol: row.token_symbol,
       netFlow24hUsd: row.net_flow_24h_usd,
-      netFlow1hUsd: typeof row.net_flow_1h_usd === "number" ? row.net_flow_1h_usd : null,
+      netFlow1hUsd: readNumber(row.net_flow_1h_usd),
+      netFlow7dUsd: readNumber(row.net_flow_7d_usd),
+      netFlow30dUsd: readNumber(row.net_flow_30d_usd),
       tokenSectors: sectors,
-      traderCount: typeof row.trader_count === "number" ? row.trader_count : null,
+      traderCount: readNumber(row.trader_count),
+      tokenAgeDays: readNumber(row.token_age_days),
+      marketCapUsd: readNumber(row.market_cap_usd),
     });
   }
   if (record.data.length > 0 && rows.length === 0) {
     throw new Error("Nansen rows were missing the fields this desk reads.");
   }
   return { rows, isLastPage: record.pagination?.is_last_page !== false };
+}
+
+function readNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 function rowMatchesHolding(row: FlowRow, entries: BookEntry[]): boolean {
@@ -467,8 +479,24 @@ export type ChainHit = {
   tokenAddress: string;
   tokenSymbol: string;
   netFlow24hUsd: number;
+  netFlow1hUsd: number | null;
+  netFlow7dUsd: number | null;
+  netFlow30dUsd: number | null;
   larger: boolean;
 };
+
+function chainHit(row: FlowRow, larger: boolean): ChainHit {
+  return {
+    chain: row.chain,
+    tokenAddress: row.tokenAddress,
+    tokenSymbol: row.tokenSymbol,
+    netFlow24hUsd: row.netFlow24hUsd,
+    netFlow1hUsd: row.netFlow1hUsd,
+    netFlow7dUsd: row.netFlow7dUsd,
+    netFlow30dUsd: row.netFlow30dUsd,
+    larger,
+  };
+}
 
 export function sameTickerTwoChains(rows: FlowRow[], isLastPage: boolean, symbolRaw: string) {
   const stripped = symbolRaw.trim().replace(/^\$+/, "");
@@ -509,15 +537,7 @@ export function sameTickerTwoChains(rows: FlowRow[], isLastPage: boolean, symbol
       status: "once" as const,
       symbol,
       sentence: `${row.tokenSymbol} is on this page once, on ${row.chain}.${pageNote}`,
-      rows: [
-        {
-          chain: row.chain,
-          tokenAddress: row.tokenAddress,
-          tokenSymbol: row.tokenSymbol,
-          netFlow24hUsd: row.netFlow24hUsd,
-          larger: false,
-        },
-      ],
+      rows: [chainHit(row, false)],
       tied: false,
       floorUsd,
       pageCut: !isLastPage,
@@ -530,13 +550,7 @@ export function sameTickerTwoChains(rows: FlowRow[], isLastPage: boolean, symbol
   const hits: ChainHit[] = sorted.map((row) => {
     const absolute = Math.abs(row.netFlow24hUsd);
     const larger = tied ? absolute === leaderAbs || Math.abs(leaderAbs - absolute) < floorUsd : absolute === leaderAbs;
-    return {
-      chain: row.chain,
-      tokenAddress: row.tokenAddress,
-      tokenSymbol: row.tokenSymbol,
-      netFlow24hUsd: row.netFlow24hUsd,
-      larger,
-    };
+    return chainHit(row, larger);
   });
   const sentence = tied
     ? `${sorted[0].tokenSymbol} is on more than one chain. The largest absolute 24h figures are inside the page floor of each other, so they are tied.${pageNote}`
@@ -630,17 +644,11 @@ function walkPayload(value: unknown): unknown {
 
 export function hourAgainstDay(
   netFlow1hUsd: number | null,
-  netFlow24hUsd: number,
-): "match" | "differ" | "missing" {
-  const hour = flowSign(netFlow1hUsd);
-  const day = flowSign(netFlow24hUsd);
-  if (hour === "missing" || day === "missing") return "missing";
-  return hour === day ? "match" : "differ";
-}
-
-function flowSign(value: number | null): "pos" | "neg" | "missing" {
-  if (value == null || value === 0) return "missing";
-  return value > 0 ? "pos" : "neg";
+  netFlow24hUsd: number | null,
+): "match" | "differ" | "flat" | "absent" {
+  if (netFlow1hUsd == null || netFlow24hUsd == null) return "absent";
+  if (netFlow1hUsd === 0 || netFlow24hUsd === 0) return "flat";
+  return netFlow1hUsd > 0 === netFlow24hUsd > 0 ? "match" : "differ";
 }
 
 export function formatUsd(value: number): string {
