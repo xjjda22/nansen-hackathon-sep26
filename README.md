@@ -15,7 +15,7 @@ Two public copies of this app.
 
 <img src="recording/wanted.png" alt="Wanted posters for STONK, ZEC, and PONS" width="576" height="360">
 
-<video src="recording/room-and-board.webm" controls width="576" height="360"></video>
+<video src="./recording/room-and-board.mp4" poster="./recording/wanted.png" controls width="576" height="360"></video>
 
 ## Run it
 
