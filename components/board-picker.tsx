@@ -1,5 +1,6 @@
 "use client";
 
+import { TokenMark } from "@/components/token-mark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Status } from "@/components/status";
@@ -83,15 +84,11 @@ export function BoardPicker({
           ) : (
             <ul className="max-h-64 space-y-2 overflow-auto">
               {shown.map((row) => (
-                <li key={`${row.chain}:${row.tokenAddress}`}>
-                  <button
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => onPick(row)}
-                    className="w-full rounded-sm border border-[#e4d3b6] px-3 py-2 text-left text-sm hover:border-rust disabled:opacity-50"
-                  >
-                    <span className="font-semibold">{row.tokenSymbol}</span>
-                    <span className="text-[#5c4632]"> · {row.chain} · {formatUsd(row.netFlow24hUsd)}</span>
+                <li key={`${row.chain}:${row.tokenAddress}`} className="flex flex-wrap items-center gap-2 rounded-sm border border-[#e4d3b6] px-3 py-2 text-sm">
+                  <TokenMark symbol={row.tokenSymbol} chain={row.chain} address={row.tokenAddress} />
+                  <span className="text-[#5c4632]">{formatUsd(row.netFlow24hUsd)}</span>
+                  <button type="button" disabled={disabled} onClick={() => onPick(row)} className="underline disabled:opacity-50">
+                    Use this row
                   </button>
                 </li>
               ))}

@@ -1,8 +1,8 @@
-# Off Book
+# After 50
 
-Two screens. Each button is one Nansen call. The lines on that screen are read from that body. A figure the payload does not contain is not shown. The pages do not scan blocks, do not ask for a seed, and do not invent a number.
+Four smart-money lists. Each list is split into two groups.
 
-The rule set is [hackathon-edge-cases.md](../docs/hackathon-edge-cases.md). Where that note disagrees with [hackathon-ideas.md](../docs/hackathon-ideas.md), the edge-case note wins.
+Traits set the top of a list next to the rest of that same page. Insights set two deeper groups next to each other. Both quests open on a comparison table, then the lines. A figure the payload does not contain is not shown. None of these seats is an order.
 
 ## Run it
 
@@ -22,46 +22,61 @@ Open [http://127.0.0.1:43127](http://127.0.0.1:43127).
 
 `npm test` checks the rules and does not call Nansen.
 
+## Room
+
+The room is one walk. It posts four routes when it opens: netflow, the profit leaderboard, dex trades, and holdings. Each costs 5 credits. A body already cached costs nothing.
+
+Each page has two quests. Pick Traits or Insights. Mark read moves to the next line. Simple, in the top bar, switches every line between the field sentence and a short reading. It does not reload. Cache, next to it, keeps the disk cache on or off and reloads.
+
+The four source desks stay in the code and stay off this screen while `SHOW_SOURCE_DESKS` in `lib/constants.ts` is false. The walk still calls their routes.
+
+### Traits
+
+- **Move.** The largest 24h moves against the quieter names on the same netflow page. The rank is the size of the move.
+- **Wallets.** The 50 Solana wallets with the most 30-day profit against the other wallets on that list. Profit is only the cut.
+- **Prints.** Buys on the Solana tape. Age and size are at the buy, for the profit-list wallets against the other wallets that printed.
+- **Holds.** The names the most wallets still hold, on every chain in the call, against the thinner names on that page. Holder count only orders the list.
+- **Across.** A name that shows up on one page and is missing from another. This quest is the lines. It has no comparison table of its own.
+
+A zero, or a missing window, is not a sign flip. A null median is absent. Page 2 is not fetched. If the page is not the last page, the rest of the book is not here.
+
+### Insights
+
+Each insight table uses the same two columns as traits. The groups are different.
+
+- **Move.** A coin 3 days old or younger whose 24h, 7d, and 30d flow match, next to a large coin with a green day and a 30d outflow more than five times that size.
+- **Holds.** A thin seat that is not on the busiest chain. The same ticker on two chains. An address that appears on more than one chain. Three names that are most of the page.
+- **On the move, off the book.** At least 9 flow traders and at most 8 holders on the same chain and address, next to a name with positive 24h flow and a holdings balance down at least 15%.
+
+The same ticker on two chains is two coins. An address is only the same asset when the chain matches. The flow page is sorted by positive 24h, so it cannot show who left.
+
+## The four calls
+
+| Page | Route | Nansen | Body |
+| --- | --- | --- | --- |
+| Move | `POST /api/netflow` | `POST /api/v1/smart-money/netflow` | all chains, page 1, 100 rows, 24h descending |
+| Wallets | `POST /api/leaderboard` | `POST /api/v1/smart-money/pnl-leaderboard` | Solana, 30 days, page 1, 1000 rows, total PnL descending |
+| Prints | `POST /api/dex-trades` | `POST /api/v1/smart-money/dex-trades` | Solana, trailing 24h, page 1, 1000 prints, newest first |
+| Holds | `POST /api/holdings` | `POST /api/v1/smart-money/holdings` | all chains, page 1, 1000 rows, holder count descending |
+
+Leaderboard comparisons that need another endpoint are not requested. A top-50 wallet with no buy on the tape is left out of the print comparison. Holdings and netflow join on chain plus address.
+
 ## Board
 
-Opening the board calls `POST /api/netflow`, which calls `POST /api/v1/smart-money/netflow` once (5 credits, page 1, 100 rows, 24h descending). The book and the rails symbol stay empty. The page ranks those tokens by absolute 24h net flow and shows them in a table: symbol, chain, 24h, 7d, 30d, trader count, sector, and age. Above the table, the first 50 are compared with the rest of the page: the leading sector and its share, the leading chain, the share whose 7d sign differs from 30d, and the median trader count, token age, and market cap when that field is present. A zero or a null window is not a sign difference. A null median is absent. If the page has fewer than 100 tokens, the lines say so. These rows are tokens. Trader count is a number on the token, not a list of wallets.
-
-The same body also prints four lines: how many tokens have positive 24h flow, the leading sector and its sum, how many tokens flip sign between 7d and 30d with the trader count on the sharpest flip, and a two-chain pair when this page already has one. If it does not, the line says this page has no pair. A later click uses the same cache and does not pay again. Typing a book refines the ledger from that body. The route, path, and cost are on the page once.
-
-From that body:
-
-- Ledger: up to three positive 24h names not on the typed book. An empty book skips this line and says so. Weather and rails still run.
-- Weather: which sector 24h flow is entering, and which it is leaving, from `token_sectors`, with the dollar sum and the token that moved that sector the most. A token in two sectors is counted in both. All positive: nothing leaving.
-- Rails: for the typed symbol, the chain, the 24h figure, and the 1h, 7d, and 30d figures on this page. A tie stays a tie. One chain says so. No symbol skips this line.
-- A picked row, with no extra call: symbol, chain, address, 1h, 24h, 7d, and 30d, whether 1h and 24h match, differ, are flat, or are absent, every sector, trader count, token age, and market cap when that field is present. A null field is absent. A numeric 0 stays 0.
-
-Page 2 is not fetched. If `is_last_page` is false, the page says so.
-
-## Blotter
-
-`POST /api/both-sides` calls `POST /api/v1/tgm/who-bought-sold` once, BUY, ordered by bought USD, 25 rows. It prints how many of that page also sold, or sold volume absent, or no trades, and a page cut when `is_last_page` is false. There is no sell call.
-
-A ticker with no address does not call. A known quote symbol is refused before the call. An address typed alone is not checked against that list.
+`/board` checks up to five symbols or addresses against the pages already loaded. The read is traits for those names. A name that is not on the page says so. No second call when the cache already has the body.
 
 ## Credits
 
-A successful body is cached for two minutes. The top line is credits spent in this server process, account remaining when Nansen sends it, and this click: last charge, cache, or no call. A refusal does not repeat the previous charge. If the account cannot cover a call, the page shows Nansen's error.
+A successful body is cached in memory for two minutes, and on disk in `data/nansen` while Cache is on. Those files are the saved pages. A later run with Cache on reads them and does not call Nansen again. The top line is credits spent in this server process, account remaining when Nansen sends it, and whether this view came from cache. A refusal does not repeat the previous charge. If the account cannot cover a call, the page shows Nansen's error.
 
 The response JSON is behind **Response**, collapsed.
 
-The pages do not call profiler labels, `agent/fast`, flow intelligence, dex trades, holdings, or a second netflow.
+The pages do not call who-bought-sold, profiler labels, `agent/fast`, flow intelligence, a token PnL leaderboard, a perp leaderboard, or chain rank. They do not fetch page 2.
 
-`GET /api/board` reads the netflow cache and does not call Nansen. `GET /api/session` is the credit counter.
+`GET /api/session` is the credit counter.
 
-The audit of an earlier build is [devils-advocate.md](../docs/devils-advocate.md).
+## Todo
 
-## Research notes
-
-The notes sit next to this repo, in `../docs`:
-
-- [hackathon-edge-cases.md](../docs/hackathon-edge-cases.md)
-- [hackathon-ideas.md](../docs/hackathon-ideas.md)
-- [built-projects.md](../docs/built-projects.md)
-- [meridian-buildathon.md](../docs/meridian-buildathon.md)
-- [ethskills-site-research.md](../docs/ethskills-site-research.md)
-- [nansen-agent-product-research.md](../docs/nansen-agent-product-research.md)
+- [ ] Match this file to the walk. Traits open on the line and the number. The comparison table is the next mark. The first section is On the move, off the book, and it has a table. Then Move, Wallets, Prints, Holds, and Cap then, cap now. Drop the line that says both quests open on a table, and the line that says Across has no table.
+- [ ] Drop "trailing 24 hours" and "last 24 hours" from the prints claim, or print the span the rows actually cover. `DEX_TRADES_BODY` in `lib/constants.ts` asks for the newest 1000 prints and has no from or to. The phrase is also in the prints frame in `lib/rules.ts`, the lede in `app/page.tsx`, `lib/plain.ts`, and the dex row in the table above. The test in `lib/rules.test.ts` locks the frame sentence.
+- [ ] Check in a short recording of a cache-off run. Four calls. The first stamp, the count, and one named mint. Point this file at that recording.

@@ -1,4 +1,6 @@
 import { CACHE_MS } from "@/lib/constants";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
 
 type CacheEntry = {
   at: number;
@@ -15,6 +17,7 @@ type Store = {
   remaining: number | null;
   lastUsed: number;
   lastCached: boolean;
+  fileCache: boolean;
 };
 
 function store(): Store {
@@ -27,11 +30,22 @@ function store(): Store {
       remaining: null,
       lastUsed: 0,
       lastCached: false,
+      fileCache: true,
     };
   }
   if (g.__offbook.lastUsed == null) g.__offbook.lastUsed = 0;
   if (g.__offbook.lastCached == null) g.__offbook.lastCached = false;
+  if (g.__offbook.fileCache == null) g.__offbook.fileCache = true;
   return g.__offbook;
+}
+
+export function fileCacheOn(): boolean {
+  return store().fileCache;
+}
+
+export function setFileCache(on: boolean): boolean {
+  store().fileCache = on;
+  return on;
 }
 
 export type CreditView = {
@@ -62,6 +76,41 @@ export function noCallCredits(): CreditView {
   return creditView(0, false);
 }
 
+const CACHE_DIR = path.join(process.cwd(), "data", "nansen");
+
+function cacheFile(cacheKey: string): string {
+  const safe = cacheKey.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "");
+  return path.join(CACHE_DIR, `${safe}.json`);
+}
+
+function isCacheEntry(value: unknown): value is CacheEntry {
+  if (!value || typeof value !== "object") return false;
+  const row = value as Record<string, unknown>;
+  return (
+    typeof row.at === "number" &&
+    typeof row.status === "number" &&
+    typeof row.ok === "boolean" &&
+    "body" in row &&
+    typeof row.creditsUsed === "number"
+  );
+}
+
+async function readDisk(cacheKey: string): Promise<CacheEntry | null> {
+  try {
+    const text = await readFile(cacheFile(cacheKey), "utf8");
+    const parsed: unknown = JSON.parse(text);
+    if (!isCacheEntry(parsed) || !parsed.ok) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+async function writeDisk(cacheKey: string, entry: CacheEntry): Promise<void> {
+  await mkdir(CACHE_DIR, { recursive: true });
+  await writeFile(cacheFile(cacheKey), JSON.stringify(entry));
+}
+
 export function peekCache(cacheKey: string): CacheEntry | null {
   const hit = store().cache.get(cacheKey);
   if (!hit) return null;
@@ -74,6 +123,18 @@ export function peekCache(cacheKey: string): CacheEntry | null {
 
 export function netflowCacheKey(): string {
   return "netflow:board:v1";
+}
+
+export function leaderboardCacheKey(): string {
+  return "leaderboard:solana:30:v1";
+}
+
+export function dexTradesCacheKey(): string {
+  return "dex-trades:solana:24h:v1";
+}
+
+export function holdingsCacheKey(): string {
+  return "holdings:all:holders:v1";
 }
 
 function scrub(message: string): string {
@@ -114,14 +175,32 @@ export async function nansenPost(
   cacheKey: string,
 ): Promise<NansenResult> {
   const current = store();
-  const hit = peekCache(cacheKey);
+  const useFile = current.fileCache;
+  const hit = useFile ? peekCache(cacheKey) : null;
   if (hit) {
     current.lastUsed = 0;
     current.lastCached = true;
+    const onDisk = await readDisk(cacheKey);
+    if (!onDisk) void writeDisk(cacheKey, hit);
     return {
       ok: hit.ok,
       status: hit.status,
       body: hit.body,
+      cached: true,
+      creditsUsed: 0,
+      credits: creditView(0, true),
+    };
+  }
+
+  const disk = useFile ? await readDisk(cacheKey) : null;
+  if (disk) {
+    current.cache.set(cacheKey, { ...disk, at: Date.now() });
+    current.lastUsed = 0;
+    current.lastCached = true;
+    return {
+      ok: disk.ok,
+      status: disk.status,
+      body: disk.body,
       cached: true,
       creditsUsed: 0,
       credits: creditView(0, true),
@@ -187,7 +266,10 @@ export async function nansenPost(
       body: parsed,
       creditsUsed: used,
     };
-    if (response.ok) current.cache.set(cacheKey, entry);
+    if (response.ok) {
+      current.cache.set(cacheKey, entry);
+      await writeDisk(cacheKey, entry);
+    }
     current.lastUsed = used;
     current.lastCached = false;
     return entry;

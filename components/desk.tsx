@@ -1,17 +1,44 @@
+"use client";
+
+import { CallNote } from "@/components/call-note";
 import { DeskMark, type DeskTone } from "@/components/marks";
+import { RawJson } from "@/components/play";
+import { Shown } from "@/components/simple-mode";
+import type { Credits } from "@/components/use-desk";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { createContext, useContext } from "react";
+
+const DeskTech = createContext<{ route: string; nansen: string; cost: string } | null>(null);
+
+export function TechFoot({ credits, raw }: { credits?: Credits | null; raw?: unknown }) {
+  const tech = useContext(DeskTech);
+  if (!tech) return null;
+  return (
+    <div className="tech-foot">
+      <p className="dev-strip">
+        <span>{tech.route}</span>
+        <span aria-hidden="true">→</span>
+        <span>{tech.nansen}</span>
+        <span className="dev-cost">{tech.cost}</span>
+      </p>
+      <CallNote credits={credits} />
+      <RawJson value={raw} />
+    </div>
+  );
+}
 
 const LINKS = [
   ["/", "Room"],
   ["/board", "Board"],
-  ["/both-sides", "Blotter"],
 ] as const;
 
 export function Nav() {
+  const path = usePathname();
   return (
     <nav className="rail" aria-label="Desks">
       {LINKS.map(([href, label]) => (
-        <Link key={href} href={href}>
+        <Link key={href} href={href} aria-current={path === href ? "page" : undefined}>
           {label}
         </Link>
       ))}
@@ -21,7 +48,7 @@ export function Nav() {
 
 export function Desk({
   title,
-  lede,
+  lede = "",
   kicker,
   tone,
   route,
@@ -30,8 +57,8 @@ export function Desk({
   children,
 }: {
   title: string;
-  lede: string;
-  kicker: string;
+  lede?: string;
+  kicker?: string;
   tone: DeskTone;
   route: string;
   nansen: string;
@@ -39,22 +66,18 @@ export function Desk({
   children: React.ReactNode;
 }) {
   return (
-    <article className={`desk desk-${tone}`} data-desk={tone}>
-      <header className="desk-head">
-        <DeskMark tone={tone} />
-        <div>
-          <p className="kicker">{kicker}</p>
-          <h1>{title}</h1>
-        </div>
-      </header>
-      <p className="desk-lede">{lede}</p>
-      <p className="dev-strip">
-        <span>{route}</span>
-        <span aria-hidden="true">→</span>
-        <span>{nansen}</span>
-        <span className="dev-cost">{cost}</span>
-      </p>
-      {children}
-    </article>
+    <DeskTech.Provider value={{ route, nansen, cost }}>
+      <article className={`desk desk-${tone}`} data-desk={tone}>
+        <header className="desk-head">
+          <DeskMark tone={tone} />
+          <div>
+            {kicker ? <p className="kicker"><Shown text={kicker} /></p> : null}
+            <h1><Shown text={title} /></h1>
+          </div>
+        </header>
+        {lede ? <p className="desk-lede"><Shown text={lede} /></p> : null}
+        {children}
+      </article>
+    </DeskTech.Provider>
   );
 }

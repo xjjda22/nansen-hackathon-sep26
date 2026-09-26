@@ -1,54 +1,57 @@
 /** Relative floor from hackathon-edge-cases.md. Printed on the pages. */
 export const RELATIVE_FLOOR = 0.01;
 
-/** A buy-page row counts only when the smaller USD volume is at least this share of the larger. */
-export const QUARTER = 0.25;
+/** The walk is the page. The four source desks stay in the code and stay off the first screen. */
+export const SHOW_SOURCE_DESKS = false;
 
 export const NETFLOW_PER_PAGE = 100;
-export const BUYERS_PER_PAGE = 25;
 export const MAX_CARDS = 3;
 export const MIN_TRADERS = 2;
-export const MAX_ADDRESSES_SHOWN = 3;
+
+/** Each walk page shows this many traits, and the same band of insights. */
+export const QUEST_MIN = 3;
+export const QUEST_MAX = 5;
 export const CACHE_MS = 2 * 60 * 1000;
 
 export const NETFLOW_COST = 5;
 export const FLOW_COST = 1;
-export const TRADES_COST = 1;
+export const LEADERBOARD_COST = 5;
+export const DEX_TRADES_COST = 5;
+export const HOLDINGS_COST = 5;
 
 export const NETFLOW_PATH = "/api/v1/smart-money/netflow";
 export const FLOW_PATH = "/api/v1/tgm/flow-intelligence";
-export const TRADES_PATH = "/api/v1/tgm/who-bought-sold";
+export const LEADERBOARD_PATH = "/api/v1/smart-money/pnl-leaderboard";
+export const DEX_TRADES_PATH = "/api/v1/smart-money/dex-trades";
+export const HOLDINGS_PATH = "/api/v1/smart-money/holdings";
 
-/**
- * Quote legs and gas tokens. Refused only when the symbol is known
- * (a row from the netflow board). An address alone is not on this list.
- */
-export const QUOTE_SYMBOLS = new Set([
-  "USDC",
-  "USDT",
-  "DAI",
-  "USDE",
-  "USD1",
-  "FRAX",
-  "TUSD",
-  "USDS",
-  "PYUSD",
-  "FDUSD",
-  "EURC",
-  "USDBC",
-  "USDC.E",
-  "USDT.E",
-  "WETH",
-  "WBTC",
-  "WSOL",
-  "WBNB",
-  "WMATIC",
-  "WPOL",
-  "WAVAX",
-  "ETH",
-  "SOL",
-  "BNB",
-]);
+/** One Smart Money PnL page. Comparisons 1–8 share it. 9–20 are other endpoints. */
+export const LEADERBOARD_PER_PAGE = 1000;
+
+export const LEADERBOARD_BODY = {
+  chains: ["solana"],
+  timeframe: 30,
+  pagination: { page: 1, per_page: LEADERBOARD_PER_PAGE },
+  order_by: [{ field: "total_pnl_usd", direction: "DESC" }],
+} as const;
+
+/** Trailing 24h Smart Money prints. Comparisons 18 and 19 share this page. */
+export const DEX_TRADES_PER_PAGE = 1000;
+
+export const DEX_TRADES_BODY = {
+  chains: ["solana"],
+  pagination: { page: 1, per_page: DEX_TRADES_PER_PAGE },
+  order_by: [{ field: "block_timestamp", direction: "DESC" }],
+} as const;
+
+/** All-chain holdings snapshot. Holder count is the cut, matching the live holdings board. */
+export const HOLDINGS_PER_PAGE = 1000;
+
+export const HOLDINGS_BODY = {
+  chains: ["all"],
+  pagination: { page: 1, per_page: HOLDINGS_PER_PAGE },
+  order_by: [{ field: "holders_count", direction: "DESC" }],
+} as const;
 
 /** Flow intelligence chains. hyperliquid is not in this set. hyperevm is a different chain. */
 export const FLOW_CHAINS = [
@@ -60,36 +63,6 @@ export const FLOW_CHAINS = [
   "ethereum",
   "hyperevm",
   "injective",
-  "linea",
-  "mantle",
-  "mantra",
-  "monad",
-  "near",
-  "optimism",
-  "plasma",
-  "polygon",
-  "robinhood",
-  "sei",
-  "solana",
-  "sonic",
-  "starknet",
-  "sui",
-  "ton",
-  "tron",
-] as const;
-
-/** Who-bought/sold chains. hyperliquid is legal here and illegal on netflow. */
-export const TRADE_CHAINS = [
-  "arbitrum",
-  "arc",
-  "avalanche",
-  "base",
-  "bnb",
-  "ethereum",
-  "hyperevm",
-  "hyperliquid",
-  "injective",
-  "iotaevm",
   "linea",
   "mantle",
   "mantra",
