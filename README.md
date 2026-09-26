@@ -13,7 +13,9 @@ Two public copies of this app.
 
 ## Video
 
-<img src="recording/wanted.png" alt="Wanted posters for STONK, ZEC, and PONS" width="288" height="180"> <img src="recording/trait.png" alt="The quest at 2 of 4, Cap then, cap now" width="288" height="180"> <img src="recording/table.png" alt="The comparison table, off the book against on the book" width="288" height="180">
+<img src="recording/wanted.png" alt="Wanted posters for STONK, ZEC, and PONS" width="576" height="360">
+
+<video src="recording/room-and-board.webm" controls width="576" height="360"></video>
 
 ## Run it
 
