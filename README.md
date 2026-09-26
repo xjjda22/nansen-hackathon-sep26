@@ -4,6 +4,17 @@ Four smart-money lists. Each list is split into two groups.
 
 Traits set the top of a list next to the rest of that same page. Insights set two deeper groups next to each other. Both quests open on a comparison table, then the lines. A figure the payload does not contain is not shown. None of these seats is an order.
 
+## Sites
+
+Two public copies of this app.
+
+- [https://after-50.onrender.com](https://after-50.onrender.com/) runs the Next server. Simple and Cache are both on the bar. The four posts go to the API. The free instance sleeps, then takes about a minute to wake.
+- [https://after-50.surge.sh](https://after-50.surge.sh/) is the static copy. It reads the saved pages. Simple is on the bar. Cache is not, because there is no server.
+
+## Video
+
+<img src="recording/wanted.png" alt="Wanted posters for STONK, ZEC, and PONS" width="288" height="180"> <img src="recording/trait.png" alt="The quest at 2 of 4, Cap then, cap now" width="288" height="180"> <img src="recording/table.png" alt="The comparison table, off the book against on the book" width="288" height="180">
+
 ## Run it
 
 You need Node 22 and npm. From this folder:

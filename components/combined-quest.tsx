@@ -7,6 +7,7 @@ import { Status } from "@/components/status";
 import { loadTokens } from "@/components/token-board";
 import { loadTraders } from "@/components/trader-board";
 import { Button } from "@/components/ui/button";
+import { topHeld, WantedBoard, type WantedFace } from "@/components/wanted-board";
 import { QUEST_MAX, QUEST_MIN } from "@/lib/constants";
 import { bandQuests, buyComparisons, combinedQuest, crossTraits, crossWalk, deeperInsights, holdWalkTraits, insightTables, moveExample, offBookExample, parseHoldings, parseLeaderboard, printExample, splitQuests, tokenHalves, type QuestSection, type QuestTrait, type SectionQuests, type TraderRow } from "@/lib/rules";
 import { useEffect, useState } from "react";
@@ -16,6 +17,7 @@ type QuestKind = "traits" | "insights";
 export function CombinedQuest() {
   const [pairs, setPairs] = useState<SectionQuests[] | null>(null);
   const [pick, setPick] = useState<{ id: string; kind: QuestKind } | null>(null);
+  const [wanted, setWanted] = useState<WantedFace[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -59,6 +61,7 @@ export function CombinedQuest() {
       }), offBookExample(flow, holds.data?.marks ?? []));
       const walked = [...(across ? [across] : []), ...built];
       const heldRows = readHoldings(holds.data?.raw);
+      setWanted(topHeld(heldRows));
       const next = bandQuests(splitQuests(walked, deeperInsights(heldRows, flow, {
         traders: traderRows.rows,
         keyKind: traderRows.keyKind,
@@ -83,6 +86,7 @@ export function CombinedQuest() {
   return (
     <div className="space-y-3">
       {error ? <Status kind="error">{error}</Status> : null}
+      <WantedBoard faces={wanted} />
       <section className="trait-read">
         <p><Shown text="Each page has two quests. Traits open on the line and the number that decided it. The comparison table is the next mark. Insights compare the two deeper groups." /></p>
         <ol className="quest-sections">
