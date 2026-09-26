@@ -7,6 +7,7 @@ import { Status } from "@/components/status";
 import { loadTraders } from "@/components/trader-board";
 import { publishCredits, type Credits } from "@/components/use-desk";
 import { buyComparisons, printMeasures, type DexBuy, type TokenMeasure, type TraderRead } from "@/lib/rules";
+import { deskFetch } from "@/lib/static-desk";
 import { useEffect, useState } from "react";
 
 type Tape = {
@@ -22,7 +23,7 @@ export function loadTape(): Promise<{ data: Tape | null; error: string | null }>
   if (!tapeLoad) {
     tapeLoad = (async () => {
       try {
-        const response = await fetch("/api/dex-trades", {
+        const response = await deskFetch("/api/dex-trades", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: "{}",

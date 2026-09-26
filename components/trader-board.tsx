@@ -6,6 +6,7 @@ import { SplitReadout } from "@/components/split-readout";
 import { Status } from "@/components/status";
 import { publishCredits, type Credits } from "@/components/use-desk";
 import { type QuestTable, type TokenMeasure } from "@/lib/rules";
+import { deskFetch } from "@/lib/static-desk";
 import { useEffect, useState } from "react";
 
 type Load = {
@@ -28,7 +29,7 @@ export function loadTraders(): Promise<{ data: Load | null; error: string | null
   if (!traderLoad) {
     traderLoad = (async () => {
       try {
-        const response = await fetch("/api/leaderboard", {
+        const response = await deskFetch("/api/leaderboard", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: "{}",

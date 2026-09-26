@@ -7,6 +7,7 @@ import { SplitReadout } from "@/components/split-readout";
 import { Status } from "@/components/status";
 import { publishCredits, type Credits } from "@/components/use-desk";
 import { formatUsd, keptTokenMeasures, tokenHalves, tokenMeasures, type TokenHalves } from "@/lib/rules";
+import { deskFetch } from "@/lib/static-desk";
 import { Fragment, useEffect, useState } from "react";
 
 type TokenRow = {
@@ -35,7 +36,7 @@ export function loadTokens(): Promise<{ data: Load | null; error: string | null 
   if (!tokenLoad) {
     tokenLoad = (async () => {
       try {
-        const response = await fetch("/api/netflow", {
+        const response = await deskFetch("/api/netflow", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ book: "", symbol: "" }),

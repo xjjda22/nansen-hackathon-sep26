@@ -119,7 +119,6 @@ const GLOSS: Record<string, string> = {
   "Four requests, one walk": "Four lists are loading.",
   "One request is in flight": "One list is loading.",
   "Age at the buy": "This is how old the coin was on the day they bought it.",
-  "Size at the buy": "This is how big the coin was on the day they bought it.",
   "Positive 24h": "Money went into the coin today.",
   "Negative 24h": "Money came out of the coin today.",
   "Age under 7 days": "The coin is younger than a week.",

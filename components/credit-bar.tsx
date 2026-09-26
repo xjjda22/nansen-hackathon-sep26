@@ -1,6 +1,7 @@
 "use client";
 
 import { useSetSimple, useSimpleOn } from "@/components/simple-mode";
+import { deskFetch, STATIC_HOST } from "@/lib/static-desk";
 import { useEffect, useState } from "react";
 
 export function CreditBar() {
@@ -10,7 +11,7 @@ export function CreditBar() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/session")
+    deskFetch("/api/session")
       .then((response) => response.json())
       .then((data: { fileCache?: boolean }) => {
         if (cancelled) return;
@@ -39,9 +40,11 @@ export function CreditBar() {
         <button type="button" className={simple ? "cache-toggle is-on" : "cache-toggle"} onClick={() => setSimple(!simple)} aria-pressed={simple}>
           Simple {simple ? "on" : "off"}
         </button>
-        <button type="button" className={fileCache ? "cache-toggle is-on" : "cache-toggle"} onClick={onToggle} aria-pressed={fileCache}>
-          Cache {fileCache ? "on" : "off"}
-        </button>
+        {STATIC_HOST ? null : (
+          <button type="button" className={fileCache ? "cache-toggle is-on" : "cache-toggle"} onClick={onToggle} aria-pressed={fileCache}>
+            Cache {fileCache ? "on" : "off"}
+          </button>
+        )}
       </span>
     </p>
   );

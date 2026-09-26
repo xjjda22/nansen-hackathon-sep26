@@ -4,14 +4,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Netflow · After 50" };
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string | string[] }>;
-}) {
-  const params = await searchParams;
-  const raw = params.q;
-  const query = Array.isArray(raw) ? (raw[0] ?? "") : (raw ?? "");
+export default function Page() {
   return (
     <Desk
       tone="ledger"
@@ -22,7 +15,7 @@ export default async function Page({
       nansen="netflow, leaderboard, dex trades, holdings"
       cost="5 each"
     >
-      <BoardForm initialQuery={query} />
+      <BoardForm initialQuery="" />
     </Desk>
   );
 }

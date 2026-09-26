@@ -804,8 +804,10 @@ export function probeQuest(input: {
   return { note, sections };
 }
 
+type NamedEntry = Exclude<BookEntry, { kind: "ignored" }>;
+
 function probeSection(
-  entry: BookEntry,
+  entry: NamedEntry,
   index: number,
   input: { flow: FlowRow[]; holds: HoldMark[]; buys: DexBuy[]; traded: string[]; keyKind: TokenKeyKind | null },
 ): QuestSection {
@@ -864,7 +866,7 @@ function printTrait(label: string, buys: DexBuy[]): string {
   return `${named}. ${buys.length} buys on today's tape. ${age} ${cap} ${trader}`.trim();
 }
 
-function tradedTrait(entry: BookEntry, traded: string[], keyKind: TokenKeyKind | null): string {
+function tradedTrait(entry: NamedEntry, traded: string[], keyKind: TokenKeyKind | null): string {
   if (keyKind == null || traded.length === 0) return "The leaderboard page has no token key, so this name cannot be checked against what they traded.";
   const hit =
     entry.kind === "symbol"

@@ -8,6 +8,7 @@ import { loadHoldings, TraitQuest } from "@/components/holding-board";
 import { loadTape } from "@/components/print-board";
 import { loadTraders } from "@/components/trader-board";
 import { probeQuest, type QuestSection } from "@/lib/rules";
+import { deskFetch } from "@/lib/static-desk";
 import { useEffect, useState } from "react";
 
 type PickRow = {
@@ -35,7 +36,7 @@ function loadBoard(): Promise<{ data: BoardResult | null; error: string | null }
   if (!boardLoad) {
     boardLoad = (async () => {
       try {
-        const response = await fetch("/api/netflow", {
+        const response = await deskFetch("/api/netflow", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ book: "", symbol: "" }),
@@ -65,6 +66,11 @@ export function BoardForm({ initialQuery }: { initialQuery: string }) {
   const [probeError, setProbeError] = useState<string | null>(null);
   const [load, setLoad] = useState<BoardResult | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const raw = new URLSearchParams(window.location.search).get("q");
+    if (raw) setProbe(raw);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;

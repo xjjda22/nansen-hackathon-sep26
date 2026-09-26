@@ -8,11 +8,10 @@ import { SplitReadout } from "@/components/split-readout";
 import { Status } from "@/components/status";
 import { Button } from "@/components/ui/button";
 import { publishCredits, type Credits } from "@/components/use-desk";
-import { type HoldMark, type QuestTable, type TokenMeasure } from "@/lib/rules";
+import { type HoldMark, type QuestSection, type QuestTable, type QuestTrait, type TokenMeasure } from "@/lib/rules";
+import { deskFetch } from "@/lib/static-desk";
 import { Fragment, useEffect, useState } from "react";
 
-type QuestTrait = { id: string; title: string; line: string };
-type QuestSection = { id: string; title: string; traits: QuestTrait[] };
 type Load = {
   frame: string;
   common: string[];
@@ -32,7 +31,7 @@ export function loadHoldings(): Promise<{ data: Load | null; error: string | nul
   if (!holdingLoad) {
     holdingLoad = (async () => {
       try {
-        const response = await fetch("/api/holdings", {
+        const response = await deskFetch("/api/holdings", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: "{}",

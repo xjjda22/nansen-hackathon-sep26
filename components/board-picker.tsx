@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Status } from "@/components/status";
 import { formatUsd } from "@/lib/rules";
+import { deskFetch } from "@/lib/static-desk";
 import { useMemo, useState } from "react";
 
 export type BoardRow = {
@@ -32,7 +33,7 @@ export function BoardPicker({
     setPending(true);
     setError(null);
     try {
-      const response = await fetch("/api/board");
+      const response = await deskFetch("/api/board");
       const data = (await response.json()) as { ready?: boolean; rows?: BoardRow[]; error?: string };
       if (!response.ok) {
         setError(data.error ?? "The cached board could not be read.");
