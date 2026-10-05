@@ -8,7 +8,7 @@ Traits set the top of a list next to the rest of that same page. Insights set tw
 
 Two public copies of this app.
 
-- [https://after-50.onrender.com](https://after-50.onrender.com/) runs the Next server. Simple is in the top bar. Disk cache is at the foot of the tray. The four posts go to the API. The free instance sleeps, then takes about a minute to wake.
+- [https://after-50.onrender.com](https://after-50.onrender.com/) runs the Next server. Simple and Disk cache are in the top bar. The four posts go to the API. The free instance sleeps, then takes about a minute to wake.
 - [https://after-50.surge.sh](https://after-50.surge.sh/) is the static copy. It reads the saved pages. Simple is in the top bar. Disk cache is not, because there is no server.
 
 ## Video
@@ -53,7 +53,7 @@ The room is one walk. It posts four routes when it opens: netflow, the profit le
 
 The pages are walked in this order: Across the pages, Move, Wallets, Prints, Holds. Across the pages opens on On the move, off the book, then Still sitting, quiet today, then Cap then, cap now, then its table.
 
-Each page has two quests. Pick Traits or Insights. Mark read moves to the next line. Simple, in the top bar, switches every line between the field sentence and a short reading. It does not reload. Disk cache, at the foot of the tray, keeps the disk cache on or off and reloads.
+Each page has two quests. Pick Traits or Insights. Mark read moves to the next line. Simple, in the top bar, switches every line between the field sentence and a short reading. It does not reload. Disk cache, also in the top bar, keeps the disk cache on or off and reloads.
 
 ### Traits
 
@@ -94,7 +94,7 @@ The Sheriff's board checks up to five symbols or addresses against the pages alr
 
 ## Credits
 
-A successful body is cached in memory for two minutes, and on disk in `data/nansen` while Disk cache is on. Those files are the saved pages. A later run with Disk cache on reads them and does not call Nansen again. The strip at the top of the tray counts the calls this tab has seen, how many came from cache, the credits spent, and the account remaining when Nansen sends it. A refusal does not repeat the previous charge. If the account cannot cover a call, the page shows Nansen's error.
+A successful body is always saved: in memory for two minutes, and on disk in `data/nansen`. Those files are the saved pages. Disk cache only decides whether they are read. On, a later run reads them and does not call Nansen again. Off, every load calls Nansen fresh and the new body replaces the saved one, so turning it back on serves the newest pages. The strip at the top of the tray counts the calls this tab has seen, how many came from cache, the credits spent, and the account remaining when Nansen sends it. A refusal does not repeat the previous charge. If the account cannot cover a call, the page shows Nansen's error.
 
 The pages do not call who-bought-sold, profiler labels, `agent/fast`, flow intelligence, a token PnL leaderboard, a perp leaderboard, or chain rank. They do not fetch page 2.
 

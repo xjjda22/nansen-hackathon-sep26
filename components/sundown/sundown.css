@@ -229,15 +229,6 @@ body:has(.sd) {
   color: var(--sd-dim);
 }
 
-.sd-cache {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-decoration: underline dotted;
-}
-
 /* Street */
 
 .sd-street {
@@ -454,6 +445,8 @@ button.sd-lot[aria-pressed="true"] { filter: drop-shadow(0 0 14px rgba(255, 210,
 @media (max-width: 720px) {
   .sd-brand { border-right: 0; }
   .sd-pill { min-width: 0; flex: 1 1 40%; }
+  .sd-hud-actions { flex-wrap: nowrap; width: 100%; gap: 0.4rem; }
+  .sd-hud-actions .sd-btn { flex: 1 1 auto; padding: 0.6rem 0.5rem; font-size: 0.78rem; letter-spacing: 0.02em; white-space: nowrap; }
   .sd-row {
     justify-content: flex-start;
     mask-image: linear-gradient(90deg, #000 85%, transparent);

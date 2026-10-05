@@ -35,7 +35,7 @@ export function useFileCache(): { on: boolean; toggle: () => Promise<void> } | n
   return STATIC_HOST ? null : { on, toggle };
 }
 
-/** A builder's switch, kept in the footer. */
+/** A builder's switch. Absent on the static host, which has no disk to cache to. */
 export function CacheSwitch({ className }: { className: string }) {
   const cache = useFileCache();
   if (!cache) return null;

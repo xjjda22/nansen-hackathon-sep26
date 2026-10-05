@@ -195,6 +195,7 @@ export function Sundown({
           >
             Simple {simple ? "on" : "off"}
           </button>
+          <CacheSwitch className="sd-btn sd-btn-toggle" />
           <button
             type="button"
             className="sd-btn sd-btn-go"
@@ -352,8 +353,7 @@ export function Sundown({
           </div>
         ) : null}
         <p className="sd-foot">
-          Powered by the Nansen API: netflow, leaderboard, DEX trades, holdings.{" "}
-          <CacheSwitch className="sd-cache" />
+          Powered by the Nansen API: netflow, leaderboard, DEX trades, holdings.
         </p>
       </footer>
 
