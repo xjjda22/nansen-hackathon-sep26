@@ -11,9 +11,17 @@ Two public copies of this app.
 - [https://after-50.onrender.com](https://after-50.onrender.com/) runs the Next server. Simple and Disk cache are in the top bar. The four posts go to the API. The free instance sleeps, then takes about a minute to wake.
 - [https://after-50.surge.sh](https://after-50.surge.sh/) is the static copy. It reads the saved pages. Simple is in the top bar. Disk cache is not, because there is no server.
 
-## Video
+## Screenshots
 
-<img src="recording/wanted.png" alt="Wanted posters for STONK, ZEC, and PONS" width="576" height="360">
+<img src="recording/town.png" alt="Dry Creek: five buildings in 3D on a street at dusk, one per page, each with its first number on a placard, under a banner that reads On the move, off the book, 8 of 50" width="576" height="360">
+
+<img src="recording/tray.png" alt="The tray: Across the pages open on its first trait, stamped 8 of 50, with the wanted board for STONK, ZEC, and PONS pinned beside it" width="576" height="360">
+
+<img src="recording/trait.png" alt="Two traits read and the third open on Cap then, cap now, stamped $287,851,927" width="576" height="360">
+
+<img src="recording/table.png" alt="The comparison table: off the book next to on the book, each row with its middle, a bar, the range, and the gap, led by Widest split: Age, 10x older" width="576" height="360">
+
+## Video
 
 <video src="./recording/room-and-board.mp4" poster="./recording/wanted.png" controls width="576" height="360"></video>
 
