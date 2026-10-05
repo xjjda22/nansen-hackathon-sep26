@@ -2,14 +2,14 @@
 
 Four smart-money lists. Each list is split into two groups.
 
-Traits set the top of a list next to the rest of that same page. Insights set two deeper groups next to each other. Both quests open on a comparison table, then the lines. A figure the payload does not contain is not shown. None of these seats is an order.
+Traits set the top of a list next to the rest of that same page. Insights set two deeper groups next to each other. Each quest opens on a line and the number that decided it, stamped in red. The comparison table is the last mark. A figure the payload does not contain is not shown. None of these seats is an order.
 
 ## Sites
 
 Two public copies of this app.
 
-- [https://after-50.onrender.com](https://after-50.onrender.com/) runs the Next server. Simple and Cache are both on the bar. The four posts go to the API. The free instance sleeps, then takes about a minute to wake.
-- [https://after-50.surge.sh](https://after-50.surge.sh/) is the static copy. It reads the saved pages. Simple is on the bar. Cache is not, because there is no server.
+- [https://after-50.onrender.com](https://after-50.onrender.com/) runs the Next server. Simple is in the top bar. Disk cache is at the foot of the tray. The four posts go to the API. The free instance sleeps, then takes about a minute to wake.
+- [https://after-50.surge.sh](https://after-50.surge.sh/) is the static copy. It reads the saved pages. Simple is in the top bar. Disk cache is not, because there is no server.
 
 ## Video
 
@@ -31,17 +31,29 @@ Create `.env.local` here with one line, `NANSEN_API_KEY=`, and your own key. `.e
 npm run dev -- --port 43127 --hostname 127.0.0.1
 ```
 
-Open [http://127.0.0.1:43127](http://127.0.0.1:43127).
+Open [http://127.0.0.1:43127](http://127.0.0.1:43127). The first load posts four calls, 20 credits. With Disk cache on, a reload reads `data/nansen` and costs nothing.
 
 `npm test` checks the rules and does not call Nansen.
+
+## The town
+
+The app is one screen, a town called Dry Creek. It calls the four routes once and builds the walk from them.
+
+- The first line and its number hang on a banner strung across the street. Click it to open that line in the tray.
+- The tray opens with a one-line pitch, a strip that counts the calls and credits, and **How to read this**, which explains Traits, Insights, off the book, the red stamp, and token names.
+- Each page is a building with its first number on a placard. Click one to walk it in the tray below. Finishing a quest lights its windows, and the sky runs from dawn to night as the open quest is read.
+- The street is in 3D. Each building is a box with sides and a roof. It turns by where it stands on screen, so the row reads as a curve and swings like a carousel when the street is swiped on a phone. The town tilts a little with the mouse; on a touch screen the camera drifts on its own. A coin turns in the top bar. All of it stays still when the system asks for reduced motion.
+- The wanted board is pinned beside the open page, under it on a narrow screen: the three names the most wallets hold, each with its holder count next to its 24h netflow, or "Off netflow" when it is not on the netflow page.
+- **Sheriff's board** opens a drawer that checks up to five names. `/board` opens the town with that drawer already open.
+- Token names are chips. Click one for its address and links to Nansen and an explorer.
 
 ## Room
 
 The room is one walk. It posts four routes when it opens: netflow, the profit leaderboard, dex trades, and holdings. Each costs 5 credits. A body already cached costs nothing.
 
-Each page has two quests. Pick Traits or Insights. Mark read moves to the next line. Simple, in the top bar, switches every line between the field sentence and a short reading. It does not reload. Cache, next to it, keeps the disk cache on or off and reloads.
+The pages are walked in this order: Across the pages, Move, Wallets, Prints, Holds. Across the pages opens on On the move, off the book, then Still sitting, quiet today, then Cap then, cap now, then its table.
 
-The four source desks stay in the code and stay off this screen while `SHOW_SOURCE_DESKS` in `lib/constants.ts` is false. The walk still calls their routes.
+Each page has two quests. Pick Traits or Insights. Mark read moves to the next line. Simple, in the top bar, switches every line between the field sentence and a short reading. It does not reload. Disk cache, at the foot of the tray, keeps the disk cache on or off and reloads.
 
 ### Traits
 
@@ -49,7 +61,9 @@ The four source desks stay in the code and stay off this screen while `SHOW_SOUR
 - **Wallets.** The 50 Solana wallets with the most 30-day profit against the other wallets on that list. Profit is only the cut.
 - **Prints.** Buys on the Solana tape. Age and size are at the buy, for the profit-list wallets against the other wallets that printed.
 - **Holds.** The names the most wallets still hold, on every chain in the call, against the thinner names on that page. Holder count only orders the list.
-- **Across.** A name that shows up on one page and is missing from another. This quest is the lines. It has no comparison table of its own.
+- **Across.** A name that shows up on one page and is missing from another. Its table sets the Solana names in the largest moves that are off the holdings page next to the ones still on it: count, 24h flow, wallets, age, size.
+
+Each comparison table opens on its widest split. Every row shows both sides' middle value (or count), a bar, the low-to-high range, and how many names had a number. The Gap column says which side leads and by how much: a multiple when both sides are positive, points for shares, names for counts. Under each row, the names nearest each side's middle are folded away, each with its own value.
 
 A zero, or a missing window, is not a sign flip. A null median is absent. Page 2 is not fetched. If the page is not the last page, the rest of the book is not here.
 
@@ -69,20 +83,18 @@ The same ticker on two chains is two coins. An address is only the same asset wh
 | --- | --- | --- | --- |
 | Move | `POST /api/netflow` | `POST /api/v1/smart-money/netflow` | all chains, page 1, 100 rows, 24h descending |
 | Wallets | `POST /api/leaderboard` | `POST /api/v1/smart-money/pnl-leaderboard` | Solana, 30 days, page 1, 1000 rows, total PnL descending |
-| Prints | `POST /api/dex-trades` | `POST /api/v1/smart-money/dex-trades` | Solana, trailing 24h, page 1, 1000 prints, newest first |
+| Prints | `POST /api/dex-trades` | `POST /api/v1/smart-money/dex-trades` | Solana, newest 1000 prints, page 1, no time window |
 | Holds | `POST /api/holdings` | `POST /api/v1/smart-money/holdings` | all chains, page 1, 1000 rows, holder count descending |
 
 Leaderboard comparisons that need another endpoint are not requested. A top-50 wallet with no buy on the tape is left out of the print comparison. Holdings and netflow join on chain plus address.
 
 ## Board
 
-`/board` checks up to five symbols or addresses against the pages already loaded. The read is traits for those names. A name that is not on the page says so. No second call when the cache already has the body.
+The Sheriff's board checks up to five symbols or addresses against the pages already loaded. It offers names to try: the largest Solana moves missing from holdings, and the most-held names. The read is traits for those names. A name that is not on the page says so. No second call when the cache already has the body.
 
 ## Credits
 
-A successful body is cached in memory for two minutes, and on disk in `data/nansen` while Cache is on. Those files are the saved pages. A later run with Cache on reads them and does not call Nansen again. The top line is credits spent in this server process, account remaining when Nansen sends it, and whether this view came from cache. A refusal does not repeat the previous charge. If the account cannot cover a call, the page shows Nansen's error.
-
-The response JSON is behind **Response**, collapsed.
+A successful body is cached in memory for two minutes, and on disk in `data/nansen` while Disk cache is on. Those files are the saved pages. A later run with Disk cache on reads them and does not call Nansen again. The strip at the top of the tray counts the calls this tab has seen, how many came from cache, the credits spent, and the account remaining when Nansen sends it. A refusal does not repeat the previous charge. If the account cannot cover a call, the page shows Nansen's error.
 
 The pages do not call who-bought-sold, profiler labels, `agent/fast`, flow intelligence, a token PnL leaderboard, a perp leaderboard, or chain rank. They do not fetch page 2.
 
@@ -90,6 +102,4 @@ The pages do not call who-bought-sold, profiler labels, `agent/fast`, flow intel
 
 ## Todo
 
-- [ ] Match this file to the walk. Traits open on the line and the number. The comparison table is the next mark. The first section is On the move, off the book, and it has a table. Then Move, Wallets, Prints, Holds, and Cap then, cap now. Drop the line that says both quests open on a table, and the line that says Across has no table.
-- [ ] Drop "trailing 24 hours" and "last 24 hours" from the prints claim, or print the span the rows actually cover. `DEX_TRADES_BODY` in `lib/constants.ts` asks for the newest 1000 prints and has no from or to. The phrase is also in the prints frame in `lib/rules.ts`, the lede in `app/page.tsx`, `lib/plain.ts`, and the dex row in the table above. The test in `lib/rules.test.ts` locks the frame sentence.
 - [ ] Check in a short recording of a cache-off run. Four calls. The first stamp, the count, and one named mint. Point this file at that recording.

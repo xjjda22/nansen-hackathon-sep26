@@ -1,4 +1,6 @@
 const SEP = "\u001f";
+/** Closes a mark, so the words after it are not read as the symbol or address. */
+const END = "\u001e";
 
 export type TokenRef = {
   symbol: string;
@@ -41,16 +43,16 @@ const EXPLORERS: Record<string, Explorer> = {
 };
 
 export function walletMark(chain: string, address: string): string {
-  return ["w", chain, address].join(SEP);
+  return ["w", chain, address].join(SEP) + END;
 }
 
 export function tokenMark(token: TokenRef): string {
-  const symbol = token.symbol.split(SEP).join("");
-  return ["t", token.chain, token.address, symbol].join(SEP);
+  const symbol = token.symbol.split(SEP).join("").split(END).join("");
+  return ["t", token.chain, token.address, symbol].join(SEP) + END;
 }
 
 export function readTokenMark(value: string): TokenRef | null {
-  const parts = value.split(SEP);
+  const parts = (value.endsWith(END) ? value.slice(0, -END.length) : value).split(SEP);
   if (parts.length !== 4 || parts[0] !== "t" || !parts[1] || !parts[2]) return null;
   return { chain: parts[1], address: parts[2], symbol: parts[3] || "token" };
 }
@@ -67,7 +69,7 @@ export type RichPart =
   | { kind: "token"; token: TokenRef }
   | { kind: "wallet"; chain: string; address: string };
 
-const MARK = /t\u001f([^\u001f]+)\u001f([^\u001f]+)\u001f([^\u001f]*)|w\u001f([^\u001f]+)\u001f([^\u001f]+)/g;
+const MARK = /t\u001f([^\u001f\u001e]+)\u001f([^\u001f\u001e]+)\u001f([^\u001f\u001e]*)\u001e?|w\u001f([^\u001f\u001e]+)\u001f([^\u001f\u001e]+)\u001e?/g;
 
 export function splitRich(value: string): RichPart[] {
   const parts: RichPart[] = [];
@@ -85,6 +87,21 @@ export function splitRich(value: string): RichPart[] {
   if (cursor < value.length) parts.push({ kind: "text", text: value.slice(cursor) });
   if (parts.length === 0) parts.push({ kind: "text", text: value });
   return parts;
+}
+
+const FIGURE = /[+-]?\$\d[\d,]*(?:\.\d+)?[KMB]?|[+-]?\d[\d,]*(?:\.\d+)?(?:%|x| of \d[\d,]*| (?:days?|names?|wallets?|buys?)\b)?/g;
+
+/** The first number in a line, the one a stamp leads with. Marks, years, and labels such as "First 50:" are skipped. */
+export function leadFigure(value: string): string | null {
+  for (const part of splitRich(value)) {
+    if (part.kind !== "text") continue;
+    for (const match of part.text.matchAll(FIGURE)) {
+      const after = part.text.charAt((match.index ?? 0) + match[0].length);
+      if (after === ":" || /^(19|20)\d\d$/.test(match[0])) continue;
+      return match[0];
+    }
+  }
+  return null;
 }
 
 export function nansenTokenUrl(chain: string, address: string): string {

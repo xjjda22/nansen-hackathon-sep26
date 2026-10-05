@@ -1,22 +1,19 @@
 "use client";
 
-import { loadHoldings, TraitQuest } from "@/components/holding-board";
+import { loadHoldings } from "@/components/holding-board";
 import { loadTape } from "@/components/print-board";
-import { Shown } from "@/components/simple-mode";
-import { Status } from "@/components/status";
 import { loadTokens } from "@/components/token-board";
 import { loadTraders } from "@/components/trader-board";
-import { Button } from "@/components/ui/button";
-import { topHeld, WantedBoard, type WantedFace } from "@/components/wanted-board";
+import { topHeld, type WantedFace } from "@/components/wanted-board";
 import { QUEST_MAX, QUEST_MIN } from "@/lib/constants";
 import { bandQuests, buyComparisons, combinedQuest, crossTraits, crossWalk, deeperInsights, holdWalkTraits, insightTables, moveExample, offBookExample, parseHoldings, parseLeaderboard, printExample, splitQuests, tokenHalves, type QuestSection, type QuestTrait, type SectionQuests, type TraderRow } from "@/lib/rules";
 import { useEffect, useState } from "react";
 
-type QuestKind = "traits" | "insights";
+export type Walk = { pairs: SectionQuests[] | null; wanted: WantedFace[]; error: string | null };
 
-export function CombinedQuest() {
+/** Posts the four routes once and builds the walk every skin of the room reads. */
+export function useWalk(): Walk {
   const [pairs, setPairs] = useState<SectionQuests[] | null>(null);
-  const [pick, setPick] = useState<{ id: string; kind: QuestKind } | null>(null);
   const [wanted, setWanted] = useState<WantedFace[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,57 +58,20 @@ export function CombinedQuest() {
       }), offBookExample(flow, holds.data?.marks ?? []));
       const walked = [...(across ? [across] : []), ...built];
       const heldRows = readHoldings(holds.data?.raw);
-      setWanted(topHeld(heldRows));
-      const next = bandQuests(splitQuests(walked, deeperInsights(heldRows, flow, {
+      setWanted(topHeld(heldRows, flow));
+      setPairs(bandQuests(splitQuests(walked, deeperInsights(heldRows, flow, {
         traders: traderRows.rows,
         keyKind: traderRows.keyKind,
         buys: tape.data?.buys ?? [],
         topAddresses: traders.data?.topAddresses ?? [],
-      }), insightTables(heldRows, flow)));
-      setPairs(next);
-      setPick((current) => current ?? (next[0] ? { id: next[0].id, kind: "traits" } : null));
+      }), insightTables(heldRows, flow))));
     });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  if (error && !pairs) return <Status kind="error">{error}</Status>;
-  if (!pairs || !pick) return <Status kind="loading">Four requests, one walk.</Status>;
-  if (pairs.length === 0) return <Status kind="error">The four pages came back with no gap to walk.</Status>;
-  const chosen = pairs.find((pair) => pair.id === pick.id) ?? pairs[0];
-  if (!chosen) return <Status kind="error">The four pages came back with no gap to walk.</Status>;
-  const section = pick.kind === "traits" ? chosen.traits : chosen.insights;
-  const title = pick.kind === "traits" ? "Traits" : "Insights";
-  return (
-    <div className="space-y-3">
-      {error ? <Status kind="error">{error}</Status> : null}
-      <WantedBoard faces={wanted} />
-      <section className="trait-read">
-        <p><Shown text="Each page has two quests. Traits open on the line and the number that decided it. The comparison table is the next mark. Insights compare the two deeper groups." /></p>
-        <ol className="quest-sections">
-          {pairs.map((pair) => (
-            <li key={pair.id} data-quest={pair.id === chosen.id ? "open" : "locked"}>
-              <span className="quest-page"><Shown text={pair.title} /></span>
-              <div className="quest-kind">
-                <Button type="button" variant={pair.id === chosen.id && pick.kind === "traits" ? "default" : "line"} onClick={() => setPick({ id: pair.id, kind: "traits" })}>
-                  Traits ({pair.traits.traits.length})
-                </Button>
-                <Button type="button" variant={pair.id === chosen.id && pick.kind === "insights" ? "default" : "line"} onClick={() => setPick({ id: pair.id, kind: "insights" })}>
-                  Insights ({pair.insights.traits.length})
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
-      {section.traits.length === 0 && !section.table ? (
-        <p><Shown text="No insight cleared the cut on this page." /></p>
-      ) : (
-        <TraitQuest key={`${chosen.id}-${pick.kind}`} sections={[section]} title={title} hideSections tableLast />
-      )}
-    </div>
-  );
+  return { pairs, wanted, error };
 }
 
 function readHoldings(raw: unknown): ReturnType<typeof parseHoldings>["rows"] {
@@ -154,4 +114,3 @@ function placeHolds(sections: QuestSection[], traits: QuestTrait[], table: Quest
   next.splice(prints + 1, 0, holds);
   return next;
 }
-

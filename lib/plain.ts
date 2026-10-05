@@ -5,8 +5,8 @@ const EXACT: Record<string, string> = {
     "These are the coins where the most money moved today. We set the loud ones next to the quiet ones. The lines say who is in them, how old they are, and how big they are.",
   "The 50 Solana wallets that made the most in 30 days, set next to the other smart-money wallets on that same list. Eight habits. Profit does not say why a trade worked, when they bought, or which fill to copy. It says how their book differs from the wallets further down the list.":
     "These are the people who made the most money. We set them next to everyone else. Making money does not tell you what to copy. It tells you how their pile is different.",
-  "Buys from the last 24 hours. How old the token was, and how big it was, when the wallets that made the most bought it, versus the other wallets that traded today. That is the when and the size. A wallet with no buy today is left out. This is not an order to copy.":
-    "These are the coins people bought today. We check how old and how big the coin was when the winners bought it, and when everyone else bought it. If someone did not buy today, they are left out. This is not telling you to buy.",
+  "Buys from the newest 1000 Solana prints. How old the token was, and how big it was, when the wallets that made the most bought it, versus the other wallets on the same prints. That is the when and the size. A wallet with no buy on this tape is left out. This is not an order to copy.":
+    "These are the coins people bought most recently. We check how old and how big the coin was when the winners bought it, and when everyone else bought it. If someone did not buy on this page, they are left out. This is not telling you to buy.",
   "Tokens the most smart-money wallets still hold, on every chain in the call. Wallet count only orders the list. The lines under it compare the crowded names with the thinner ones on this page.":
     "These are the coins the group still holds. The list is ordered by how many people hold each coin. The lines compare the crowded coins with the lonely ones.",
   "Enter up to five symbols or addresses. Each name is a short walk across netflow, holdings, today's tape, and the names the top wallets traded. Traits only.":
@@ -160,7 +160,7 @@ export function plainReading(text: string): string {
   if (stamp) return stamp;
   if (clean.includes("largest 24h moves")) return "The loud coins are on top. The quiet coins are underneath. The order is how big today's move was.";
   if (clean.includes("made the most")) return "The people who made the most money are on top. Everyone else is underneath.";
-  if (clean.includes("buys in the last 24 hours")) return "These are the buys on this page. The winners are one group. The other buyers are the other group.";
+  if (clean.includes("buys in the newest prints")) return "These are the buys on this page. The winners are one group. The other buyers are the other group.";
   if (clean.includes("wallets still hold")) return "The coins the most people still hold are on top. The coins fewer people hold are underneath.";
   if (clean.length <= 48 && !clean.includes(".")) return clean;
   return "Two groups are side by side. One is the top of the list. The other is everyone else.";

@@ -853,7 +853,7 @@ test("buys compare the profit cut with other printers on the same page", () => {
     { traderAddress: "Ccc", boughtAgeDays: 20, boughtMarketCap: 80 },
   ];
   const read = buyComparisons(top, buys, true);
-  assert.match(read.frame, /5 buys in the last 24 hours, short of 1000/);
+  assert.match(read.frame, /5 buys in the newest prints, short of 1000/);
   assert.match(read.frame, /2 of them bought on this tape/);
   assert.match(read.frame, /2 other wallets/);
   assert.ok(read.meaningful.some((line) => line.startsWith("When. How old the token was on the buy. First 50: 2 days (1 of 2 present). The others: 15 days.")));

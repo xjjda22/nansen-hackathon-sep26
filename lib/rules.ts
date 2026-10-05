@@ -1005,7 +1005,18 @@ function groupLabel(names: string[], count: number, total: number): string {
   return `${names.join(", ")} is the common label, ${each}${count} of ${total} names.`;
 }
 
-type MeasureKind = "count" | "days" | "usd" | "share" | "ratio" | "pct";
+export type MeasureKind = "count" | "days" | "usd" | "share" | "ratio" | "pct";
+
+/** The number behind a table cell. Counts carry their total. Medians carry the range and how many names had a number. */
+export type CellStat = {
+  kind: MeasureKind;
+  value: number;
+  total?: number;
+  low?: number;
+  high?: number;
+  present?: number;
+  of?: number;
+};
 
 function measureCell(value: number | null, presentCount: number, total: number, kind: MeasureKind): string {
   if (presentCount === 0 || value == null) return "This side has no number.";
@@ -1647,7 +1658,7 @@ export function buyComparisons(topAddresses: string[], buys: DexBuy[], isLastPag
   }
   const restWallets = [...restBuckets.keys()];
   const named = topAddresses.length === TRADER_TOP ? "The 50 who made the most" : `The ${topAddresses.length} who made the most`;
-  const frame = `${buys.length} buys in the last 24 hours${short}. ${named}. ${boughtCount(topBuckets)} of them bought on this tape. ${restWallets.length} other wallets also bought. A wallet with no buy today is left out.${pageNote}`;
+  const frame = `${buys.length} buys in the newest prints${short}. ${named}. ${boughtCount(topBuckets)} of them bought on this tape. ${restWallets.length} other wallets also bought. A wallet with no buy on this tape is left out.${pageNote}`;
   if (restWallets.length === 0) {
     return {
       pageCount: buys.length,
@@ -1924,7 +1935,19 @@ export type QuestTable = {
   caption: string;
   columns: string[];
   nameLabels: [string, string];
-  rows: { name: string; top: string; topPlain: string; topNames: string[]; bottom: string; bottomPlain: string; bottomNames: string[] }[];
+  rows: {
+    name: string;
+    top: string;
+    topPlain: string;
+    topNames: string[];
+    bottom: string;
+    bottomPlain: string;
+    bottomNames: string[];
+    topStat?: CellStat;
+    bottomStat?: CellStat;
+    /** True when the names are the ones nearest each side's middle, each with its own value. */
+    namesNearMiddle?: boolean;
+  }[];
 };
 
 export type QuestSection = {
@@ -2321,13 +2344,19 @@ function clipNames(labels: string[]): string[] {
   return [...new Set(labels.map((label) => label.trim()).filter(Boolean))].slice(0, NAME_CAP);
 }
 
-function nearestMany<T>(rows: T[], pick: (row: T) => number | null, target: number | null, label: (row: T) => string): string[] {
+function nearestMany<T>(
+  rows: T[],
+  pick: (row: T) => number | null,
+  target: number | null,
+  label: (row: T) => string,
+  kind?: MeasureKind,
+): string[] {
   const ranked = rows.flatMap((row) => {
     const value = pick(row);
     if (value == null) return [];
     const name = label(row).trim();
     if (!name) return [];
-    return [{ name, gap: target == null ? 0 : Math.abs(value - target) }];
+    return [{ name: kind ? `${name} · ${measureBody(value, kind)}` : name, gap: target == null ? 0 : Math.abs(value - target) }];
   });
   ranked.sort((a, b) => a.gap - b.gap);
   return clipNames(ranked.map((item) => item.name));
@@ -2348,29 +2377,62 @@ function medianNamed(
   pick: (row: FlowRow) => number | null,
   shortWord: string,
 ): QuestTable["rows"][number] {
-  return measureRow(
-    name,
-    sideMedian(topValue, kind),
-    lackMedian(topValue, bottomValue, kind, shortWord),
-    nearestMany(topRows, pick, topValue, tokenLabel),
-    nearestMany(bottomRows, pick, bottomValue, tokenLabel),
+  return spreadRow(
+    measureRow(
+      name,
+      sideMedian(topValue, kind),
+      lackMedian(topValue, bottomValue, kind, shortWord),
+      nearestMany(topRows, pick, topValue, tokenLabel, kind),
+      nearestMany(bottomRows, pick, bottomValue, tokenLabel, kind),
+    ),
+    topRows,
+    bottomRows,
+    pick,
   );
 }
 
-type Read = { text: string; plain: string };
+type Read = { text: string; plain: string; stat?: CellStat };
 
 function measureRow(name: string, top: Read, bottom: Read, topNames: string[], bottomNames: string[]): QuestTable["rows"][number] {
-  return { name, top: top.text, topPlain: top.plain, bottom: bottom.text, bottomPlain: bottom.plain, topNames, bottomNames };
+  return {
+    name,
+    top: top.text,
+    topPlain: top.plain,
+    bottom: bottom.text,
+    bottomPlain: bottom.plain,
+    topNames,
+    bottomNames,
+    ...(top.stat ? { topStat: top.stat } : {}),
+    ...(bottom.stat ? { bottomStat: bottom.stat } : {}),
+  };
+}
+
+/** Adds each side's range and coverage to a median row, and marks its names as the ones nearest the middle. */
+function spreadRow<T>(row: QuestTable["rows"][number], top: T[], bottom: T[], pick: (item: T) => number | null): QuestTable["rows"][number] {
+  const widen = (stat: CellStat | undefined, items: T[]): CellStat | undefined => {
+    if (!stat) return stat;
+    const values = present(items.map(pick));
+    if (values.length === 0) return stat;
+    return { ...stat, low: Math.min(...values), high: Math.max(...values), present: values.length, of: items.length };
+  };
+  const topStat = widen(row.topStat, top);
+  const bottomStat = widen(row.bottomStat, bottom);
+  return { ...row, ...(topStat ? { topStat } : {}), ...(bottomStat ? { bottomStat } : {}), namesNearMiddle: true };
 }
 
 function sideCount(count: number, total: number, what: string, group = "loud coins"): Read {
   return {
     text: `${count} of ${total} names ${what}.`,
     plain: `${count} of ${total} ${group} ${what}.`,
+    stat: { kind: "count", value: count, total },
   };
 }
 
 function lackCount(count: number, topCount: number, total: number, what: string): Read {
+  return { ...lackCountText(count, topCount, total, what), stat: { kind: "count", value: count, total } };
+}
+
+function lackCountText(count: number, topCount: number, total: number, what: string): Read {
   const delta = count - topCount;
   if (delta > 0) {
     return {
@@ -2390,18 +2452,18 @@ function lackCount(count: number, topCount: number, total: number, what: string)
   };
 }
 
-function sideMedian(value: number | null, kind: "count" | "days" | "usd" | "share" | "ratio" | "pct", group = "loud one"): Read {
+function sideMedian(value: number | null, kind: MeasureKind, group = "loud one"): Read {
   if (value == null) return { text: "This side has no number.", plain: "This side has no number." };
   const body = measureBody(value, kind);
-  return { text: `The middle of this group is ${body}.`, plain: `The typical ${group} is ${body}.` };
+  return { text: `The middle of this group is ${body}.`, plain: `The typical ${group} is ${body}.`, stat: { kind, value } };
 }
 
-function lackMedian(
-  top: number | null,
-  bottom: number | null,
-  kind: "count" | "days" | "usd" | "share" | "ratio" | "pct",
-  shortWord: string,
-): Read {
+function lackMedian(top: number | null, bottom: number | null, kind: MeasureKind, shortWord: string): Read {
+  const read = lackMedianText(top, bottom, kind, shortWord);
+  return bottom == null ? read : { ...read, stat: { kind, value: bottom } };
+}
+
+function lackMedianText(top: number | null, bottom: number | null, kind: MeasureKind, shortWord: string): Read {
   if (top == null || bottom == null) return { text: "This side has no number.", plain: "This side has no number." };
   const body = measureBody(bottom, kind);
   const delta = bottom - top;
@@ -2652,9 +2714,9 @@ function buyLabel(buckets: Map<string, DexBuy[]>, field: "age" | "cap", target: 
   return nearestOf(wallets, (item) => item.value, target, (item) => item.buy.tokenSymbol ?? "");
 }
 
-function measureBody(value: number, kind: "count" | "days" | "usd" | "share" | "ratio" | "pct"): string {
+export function measureBody(value: number, kind: MeasureKind): string {
   if (kind === "usd") return formatUsd(value);
-  if (kind === "days") return `${plainNumber(value)} days`;
+  if (kind === "days") return value === 1 ? "1 day" : `${plainNumber(value)} days`;
   if (kind === "share" || kind === "pct") return kind === "pct" ? percentText(value) : shareText(value);
   if (kind === "ratio") return ratioText(value);
   return plainNumber(value);
@@ -2999,7 +3061,7 @@ const FAT_PER_WALLET = 20_000;
 const SEAT_MIN_AGE = 14;
 const LIFE_AGE_DAYS = 3;
 
-function assetKey(chain: string, address: string): string {
+export function assetKey(chain: string, address: string): string {
   return `${chain}:${address}`;
 }
 
@@ -3474,12 +3536,17 @@ function medianSides<T>(
 ): QuestTable["rows"][number] {
   const leftValue = groupMedian(left, pick);
   const rightValue = groupMedian(right, pick);
-  return measureRow(
-    name,
-    sideMedian(leftValue, kind, leftGroup),
-    sideMedian(rightValue, kind, rightGroup),
-    nearestMany(left, pick, leftValue, label),
-    nearestMany(right, pick, rightValue, label),
+  return spreadRow(
+    measureRow(
+      name,
+      sideMedian(leftValue, kind, leftGroup),
+      sideMedian(rightValue, kind, rightGroup),
+      nearestMany(left, pick, leftValue, label, kind),
+      nearestMany(right, pick, rightValue, label, kind),
+    ),
+    left,
+    right,
+    pick,
   );
 }
 

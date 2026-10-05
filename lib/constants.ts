@@ -1,9 +1,6 @@
 /** Relative floor from hackathon-edge-cases.md. Printed on the pages. */
 export const RELATIVE_FLOOR = 0.01;
 
-/** The walk is the page. The four source desks stay in the code and stay off the first screen. */
-export const SHOW_SOURCE_DESKS = false;
-
 export const NETFLOW_PER_PAGE = 100;
 export const MAX_CARDS = 3;
 export const MIN_TRADERS = 2;
@@ -35,7 +32,7 @@ export const LEADERBOARD_BODY = {
   order_by: [{ field: "total_pnl_usd", direction: "DESC" }],
 } as const;
 
-/** Trailing 24h Smart Money prints. Comparisons 18 and 19 share this page. */
+/** Newest Smart Money prints, no time window. Comparisons 18 and 19 share this page. */
 export const DEX_TRADES_PER_PAGE = 1000;
 
 export const DEX_TRADES_BODY = {

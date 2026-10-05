@@ -5,8 +5,6 @@ import { DeskMark, type DeskTone } from "@/components/marks";
 import { RawJson } from "@/components/play";
 import { Shown } from "@/components/simple-mode";
 import type { Credits } from "@/components/use-desk";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { createContext, useContext } from "react";
 
 const DeskTech = createContext<{ route: string; nansen: string; cost: string } | null>(null);
@@ -25,24 +23,6 @@ export function TechFoot({ credits, raw }: { credits?: Credits | null; raw?: unk
       <CallNote credits={credits} />
       <RawJson value={raw} />
     </div>
-  );
-}
-
-const LINKS = [
-  ["/", "Room"],
-  ["/board", "Board"],
-] as const;
-
-export function Nav() {
-  const path = usePathname();
-  return (
-    <nav className="rail" aria-label="Desks">
-      {LINKS.map(([href, label]) => (
-        <Link key={href} href={href} aria-current={path === href ? "page" : undefined}>
-          {label}
-        </Link>
-      ))}
-    </nav>
   );
 }
 

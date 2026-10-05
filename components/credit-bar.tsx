@@ -1,13 +1,11 @@
 "use client";
 
-import { useSetSimple, useSimpleOn } from "@/components/simple-mode";
 import { deskFetch, STATIC_HOST } from "@/lib/static-desk";
 import { useEffect, useState } from "react";
 
-export function CreditBar() {
-  const [fileCache, setFileCache] = useState(true);
-  const simple = useSimpleOn();
-  const setSimple = useSetSimple();
+/** The disk cache switch. Null on the static host, which has no server to hold it. */
+export function useFileCache(): { on: boolean; toggle: () => Promise<void> } | null {
+  const [on, setOn] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -15,7 +13,7 @@ export function CreditBar() {
       .then((response) => response.json())
       .then((data: { fileCache?: boolean }) => {
         if (cancelled) return;
-        if (typeof data.fileCache === "boolean") setFileCache(data.fileCache);
+        if (typeof data.fileCache === "boolean") setOn(data.fileCache);
       })
       .catch(() => undefined);
     return () => {
@@ -23,9 +21,9 @@ export function CreditBar() {
     };
   }, []);
 
-  async function onToggle() {
-    const next = !fileCache;
-    setFileCache(next);
+  async function toggle() {
+    const next = !on;
+    setOn(next);
     await fetch("/api/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -34,18 +32,16 @@ export function CreditBar() {
     window.location.reload();
   }
 
+  return STATIC_HOST ? null : { on, toggle };
+}
+
+/** A builder's switch, kept in the footer. */
+export function CacheSwitch({ className }: { className: string }) {
+  const cache = useFileCache();
+  if (!cache) return null;
   return (
-    <p className="plaque">
-      <span className="plaque-toggles">
-        <button type="button" className={simple ? "cache-toggle is-on" : "cache-toggle"} onClick={() => setSimple(!simple)} aria-pressed={simple}>
-          Simple {simple ? "on" : "off"}
-        </button>
-        {STATIC_HOST ? null : (
-          <button type="button" className={fileCache ? "cache-toggle is-on" : "cache-toggle"} onClick={onToggle} aria-pressed={fileCache}>
-            Cache {fileCache ? "on" : "off"}
-          </button>
-        )}
-      </span>
-    </p>
+    <button type="button" className={className} onClick={cache.toggle} aria-pressed={cache.on}>
+      Disk cache {cache.on ? "on" : "off"}
+    </button>
   );
 }

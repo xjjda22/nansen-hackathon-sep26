@@ -1,16 +1,17 @@
 "use client";
 
+import { CompareTable } from "@/components/compare-table";
 import { TechFoot } from "@/components/desk";
 import { Shown } from "@/components/simple-mode";
-import { TokenName } from "@/components/token-mark";
 import { Ladder } from "@/components/ladder";
 import { SplitReadout } from "@/components/split-readout";
 import { Status } from "@/components/status";
 import { Button } from "@/components/ui/button";
 import { publishCredits, type Credits } from "@/components/use-desk";
-import { type HoldMark, type QuestSection, type QuestTable, type QuestTrait, type TokenMeasure } from "@/lib/rules";
+import { type HoldMark, type QuestSection, type QuestTable, type TokenMeasure } from "@/lib/rules";
 import { deskFetch } from "@/lib/static-desk";
-import { Fragment, useEffect, useState } from "react";
+import { leadFigure } from "@/lib/token-ref";
+import { useEffect, useState } from "react";
 
 type Load = {
   frame: string;
@@ -92,25 +93,25 @@ export function HoldingBoard() {
   );
 }
 
-function NameBand({ label, names }: { label: string; names: string[] }) {
-  if (names.length === 0) return null;
-  return (
-    <div className="token-band">
-      <span>{label}</span>
-      <ul>
-        {names.map((name) => (
-          <li key={name}>
-            <TokenName name={name} />
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-export function TraitQuest({ sections, title, hideSections = false, tableLast = false }: { sections: QuestSection[]; title: string; hideSections?: boolean; tableLast?: boolean }) {
+export function TraitQuest({
+  sections,
+  title,
+  hideSections = false,
+  tableLast = false,
+  onProgress,
+}: {
+  sections: QuestSection[];
+  title: string;
+  hideSections?: boolean;
+  tableLast?: boolean;
+  onProgress?: (done: number, total: number) => void;
+}) {
   const [done, setDone] = useState(0);
   const total = sections.reduce((sum, section) => sum + sectionSteps(section), 0);
+  const markRead = () => {
+    setDone(done + 1);
+    onProgress?.(done + 1, total);
+  };
   const finished = total > 0 && done >= total;
   const place = locateTrait(sections, done);
   const section = sections[place.sectionIndex];
@@ -139,41 +140,9 @@ export function TraitQuest({ sections, title, hideSections = false, tableLast = 
           })}
         </ol>
       )}
-      {section?.table && onTable ? (
-        <div className="ladder-wrap">
-          <table className="ladder">
-            <caption><Shown text={section.table.caption} /></caption>
-            <thead>
-              <tr>
-                {section.table.columns.map((column, index) => (
-                  <th key={`${column}-${index}`} scope="col">
-                    {column}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {section.table.rows.map((row) => (
-                <Fragment key={row.name}>
-                  <tr>
-                    <th scope="row"><Shown text={row.name} /></th>
-                    <td><Shown text={row.top} plain={row.topPlain} /></td>
-                    <td><Shown text={row.bottom} plain={row.bottomPlain} /></td>
-                  </tr>
-                  <tr className="token-line">
-                    <td colSpan={3}>
-                      <NameBand label={section.table?.nameLabels[0] ?? ""} names={row.topNames} />
-                      <NameBand label={section.table?.nameLabels[1] ?? ""} names={row.bottomNames} />
-                    </td>
-                  </tr>
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : null}
+      {section?.table && onTable ? <CompareTable table={section.table} /> : null}
       {onTable ? (
-        <Button type="button" onClick={() => setDone((count) => count + 1)}>
+        <Button type="button" onClick={markRead}>
           Mark read
         </Button>
       ) : null}
@@ -188,11 +157,13 @@ export function TraitQuest({ sections, title, hideSections = false, tableLast = 
               );
             }
             if (!finished && index === traitCursor) {
+              const figure = leadFigure(item.line);
               return (
                 <li key={item.id} data-quest="open">
                   <h4><Shown text={item.title} /></h4>
+                  {figure ? <p className="quest-figure">{figure}</p> : null}
                   <p><Shown text={item.line} plain={item.plain} /></p>
-                  <Button type="button" onClick={() => setDone((count) => count + 1)}>
+                  <Button type="button" onClick={markRead}>
                     Mark read
                   </Button>
                 </li>

@@ -75,16 +75,35 @@ export function AddressLinks({
 }
 
 export function TokenMark({ symbol, chain, address, symbolHref }: TokenRef & { symbolHref?: string }) {
+  const [open, setOpen] = useState(false);
+  if (symbolHref) {
+    return (
+      <span className="token-mark">
+        <TokenFace symbol={symbol} chain={chain} address={address} symbolHref={symbolHref} />
+        <AddressLinks label={symbol || "Token"} chain={chain} address={address} kind="token" />
+      </span>
+    );
+  }
   return (
-    <span className="token-mark">
-      <TokenFace symbol={symbol} chain={chain} address={address} symbolHref={symbolHref} />
-      <AddressLinks label={symbol || "Token"} chain={chain} address={address} kind="token" />
+    <span className="token-mark token-chip-wrap" data-open={open}>
+      <button type="button" className="token-chip" aria-expanded={open} title={`${symbol || "Token"} on ${chain}. Click for the address and links.`} onClick={() => setOpen(!open)}>
+        <TokenFace symbol={symbol} chain={chain} address={address} />
+      </button>
+      {open ? <AddressLinks label={symbol || "Token"} chain={chain} address={address} kind="token" /> : null}
     </span>
   );
 }
 
 export function WalletMark({ chain, address }: { chain: string; address: string }) {
-  return <AddressLinks label="Wallet" chain={chain} address={address} kind="wallet" />;
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="token-mark token-chip-wrap" data-open={open}>
+      <button type="button" className="token-chip wallet-chip" aria-expanded={open} title="Wallet. Click for the address and links." onClick={() => setOpen(!open)}>
+        Wallet <span className="token-address">{shortAddress(address)}</span>
+      </button>
+      {open ? <AddressLinks label="Wallet" chain={chain} address={address} kind="wallet" /> : null}
+    </span>
+  );
 }
 
 export function RichText({ text }: { text: string }) {
